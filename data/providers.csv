@@ -1,0 +1,17 @@
+name,category,position,rating,verified,country,location,image_url,bio,email,phone,website,instagram,punctuality,professionalism,reliability,price,client_satisfaction
+Chris Evans,djs,1,5.0,true,USA,New York NY,/api/placeholder/150/150,Professional DJ with 10+ years of experience in NYC nightlife and events.,chris@example.com,+1 (555) 123-4567,https://chrisevansdj.com,@chrisevansdj,5,5,5,4,5
+Lucas Pereira,djs,2,4.8,true,Brazil,New York NY,/api/placeholder/150/150,Brazilian DJ specializing in Latin music and international events.,lucas@example.com,+1 (555) 234-5678,,@lucaspereira,5,5,4,5,5
+Juan Martinez,djs,3,4.7,false,Mexico,New York NY,/api/placeholder/150/150,Versatile DJ with expertise in multiple genres and event types.,juan@example.com,+1 (555) 345-6789,,,4,5,4,4,5
+Mark Johnson,djs,4,4.6,true,USA,New York NY,/api/placeholder/150/150,High-end DJ for luxury events and corporate functions.,mark@example.com,+1 (555) 456-7890,https://markjohnsondj.com,,5,4,5,3,4
+David Smith,djs,5,4.5,false,USA,New York NY,/api/placeholder/150/150,Budget-friendly DJ perfect for small to medium events.,david@example.com,+1 (555) 567-8901,,,4,4,4,5,4
+Mark Davis,djs,6,4.4,false,USA,New York NY,/api/placeholder/150/150,Creative DJ with unique style and innovative mixes.,markd@example.com,+1 (555) 678-9012,,,4,4,4,4,4
+Sarah Wilson,photographers,1,5.0,true,USA,New York NY,/api/placeholder/150/150,Award-winning photographer specializing in weddings and corporate events.,sarah@example.com,+1 (555) 789-0123,https://sarahwilsonphoto.com,@sarahwilsonphoto,5,5,5,4,5
+Alex Chen,photographers,2,4.9,true,USA,New York NY,/api/placeholder/150/150,Fashion and event photographer with international recognition.,alex@example.com,+1 (555) 890-1234,,@alexchenphoto,5,5,5,3,5
+Maria Rodriguez,photographers,3,4.8,true,USA,New York NY,/api/placeholder/150/150,Portrait and lifestyle photographer with a creative eye.,maria@example.com,+1 (555) 901-2345,https://mariarodriguezphoto.com,@mariarodriguezphoto,5,5,5,4,5
+James Thompson,photographers,4,4.7,false,USA,New York NY,/api/placeholder/150/150,Commercial photographer specializing in corporate and product photography.,james@example.com,+1 (555) 012-3456,,,4,4,4,4,4
+Lisa Park,photographers,5,4.6,true,USA,New York NY,/api/placeholder/150/150,Wedding photographer with a documentary style approach.,lisa@example.com,+1 (555) 123-4567,https://lisaparkphoto.com,@lisaparkphoto,5,5,5,4,5
+Mike Rodriguez,videographers,1,5.0,true,USA,New York NY,/api/placeholder/150/150,Professional videographer with expertise in event coverage and promotional videos.,mike@example.com,+1 (555) 234-5678,https://mikerodriguezvideo.com,@mikerodriguezvideo,5,5,5,4,5
+Emma Thompson,videographers,2,4.8,true,USA,New York NY,/api/placeholder/150/150,Creative videographer specializing in wedding films and corporate content.,emma@example.com,+1 (555) 345-6789,,@emmathompsonvideo,5,5,4,5,5
+Carlos Mendez,videographers,3,4.7,false,USA,New York NY,/api/placeholder/150/150,Event videographer with a focus on capturing authentic moments.,carlos@example.com,+1 (555) 456-7890,,,4,4,4,4,4
+Jennifer Lee,videographers,4,4.6,true,USA,New York NY,/api/placeholder/150/150,Documentary-style videographer for weddings and special events.,jennifer@example.com,+1 (555) 567-8901,https://jenniferleevideo.com,@jenniferleevideo,5,5,5,4,5
+Robert Kim,videographers,5,4.5,false,USA,New York NY,/api/placeholder/150/150,Corporate videographer with expertise in promotional and training videos.,robert@example.com,+1 (555) 678-9012,,,4,4,4,4,4

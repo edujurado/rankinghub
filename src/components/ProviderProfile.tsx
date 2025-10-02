@@ -1,0 +1,320 @@
+'use client'
+
+import { useState } from 'react'
+import { Star, CheckCircle, Mail, Phone, Globe, Instagram, MapPin, Star as StarIcon } from 'lucide-react'
+import Header from './Header'
+import Footer from './Footer'
+import { Provider } from '@/types'
+import { mockProviders } from '@/lib/data'
+
+interface ProviderProfileProps {
+  providerId: string
+}
+
+export default function ProviderProfile({ providerId }: ProviderProfileProps) {
+  const [provider, setProvider] = useState<Provider | null>(null)
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    eventDate: '',
+    eventType: '',
+    message: ''
+  })
+
+  // Find provider by ID
+  useState(() => {
+    const foundProvider = mockProviders.find(p => p.id === providerId)
+    setProvider(foundProvider || null)
+  }, [providerId])
+
+  if (!provider) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              Provider not found
+            </h1>
+            <p className="text-gray-600">
+              The provider you're looking for doesn't exist or has been removed.
+            </p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        size={20}
+        className={i < Math.floor(rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}
+      />
+    ))
+  }
+
+  const getCountryFlag = (country: string) => {
+    const flags: { [key: string]: string } = {
+      'USA': '🇺🇸',
+      'Brazil': '🇧🇷',
+      'Mexico': '🇲🇽',
+      'Canada': '🇨🇦',
+      'UK': '🇬🇧'
+    }
+    return flags[country] || '🌍'
+  }
+
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // TODO: Send email to provider
+    console.log('Contact form submitted:', contactForm)
+    alert('Thank you! Your message has been sent to the provider.')
+  }
+
+  const skills = [
+    { name: 'Punctuality', rating: provider.skills.punctuality },
+    { name: 'Professionalism', rating: provider.skills.professionalism },
+    { name: 'Reliability', rating: provider.skills.reliability },
+    { name: 'Price', rating: provider.skills.price },
+    { name: 'Client Satisfaction', rating: provider.skills.clientSatisfaction }
+  ]
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      
+      <main>
+        {/* Hero Section */}
+        <section className="bg-blue-900 text-white py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row items-center space-y-6 md:space-y-0 md:space-x-8">
+              {/* Profile Image */}
+              <div className="flex-shrink-0">
+                <div className="w-32 h-32 bg-gray-200 rounded-full overflow-hidden">
+                  <img
+                    src={provider.image}
+                    alt={provider.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=128`
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Provider Info */}
+              <div className="flex-1 text-center md:text-left">
+                <div className="flex items-center justify-center md:justify-start space-x-2 mb-2">
+                  <h1 className="text-3xl md:text-4xl font-bold">{provider.name}</h1>
+                  {provider.verified && (
+                    <CheckCircle size={32} className="text-yellow-400" />
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-center md:justify-start space-x-4 text-lg mb-4">
+                  <span>{getCountryFlag(provider.country)} {provider.location}</span>
+                  <div className="flex items-center space-x-1">
+                    {renderStars(provider.rating)}
+                    <span className="ml-2">{provider.rating}</span>
+                  </div>
+                </div>
+
+                <p className="text-blue-100 text-lg max-w-2xl">
+                  {provider.bio}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Skills Ratings */}
+              <div className="card">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Skills & Ratings</h2>
+                <div className="space-y-4">
+                  {skills.map((skill) => (
+                    <div key={skill.name} className="flex items-center justify-between">
+                      <span className="text-lg font-medium text-gray-700">{skill.name}</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex space-x-1">
+                          {Array.from({ length: 5 }, (_, i) => (
+                            <StarIcon
+                              key={i}
+                              size={20}
+                              className={i < skill.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-lg font-semibold text-gray-900">{skill.rating}/5</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Portfolio */}
+              <div className="card">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Portfolio</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {provider.portfolio.length > 0 ? (
+                    provider.portfolio.map((image, index) => (
+                      <div key={index} className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
+                        <img
+                          src={image}
+                          alt={`Portfolio ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center py-12 text-gray-500">
+                      <p>Portfolio images coming soon...</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Contact Form */}
+            <div className="lg:col-span-1">
+              <div className="card sticky top-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Contact {provider.name}</h2>
+                
+                <form onSubmit={handleContactSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Your Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={contactForm.name}
+                      onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={contactForm.email}
+                      onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone
+                    </label>
+                    <input
+                      type="tel"
+                      value={contactForm.phone}
+                      onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Event Date
+                    </label>
+                    <input
+                      type="date"
+                      value={contactForm.eventDate}
+                      onChange={(e) => setContactForm({ ...contactForm, eventDate: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Event Type
+                    </label>
+                    <select
+                      value={contactForm.eventType}
+                      onChange={(e) => setContactForm({ ...contactForm, eventType: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    >
+                      <option value="">Select event type</option>
+                      <option value="wedding">Wedding</option>
+                      <option value="corporate">Corporate Event</option>
+                      <option value="birthday">Birthday Party</option>
+                      <option value="anniversary">Anniversary</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Message
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={contactForm.message}
+                      onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      placeholder="Tell us about your event..."
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full btn-primary py-3"
+                  >
+                    Send Message
+                  </button>
+                </form>
+
+                {/* Direct Contact Info */}
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Direct Contact</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2 text-gray-600">
+                      <Mail size={16} />
+                      <span>{provider.contact.email}</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-gray-600">
+                      <Phone size={16} />
+                      <span>{provider.contact.phone}</span>
+                    </div>
+                    {provider.contact.website && (
+                      <div className="flex items-center space-x-2 text-gray-600">
+                        <Globe size={16} />
+                        <a href={provider.contact.website} className="text-blue-600 hover:underline">
+                          Website
+                        </a>
+                      </div>
+                    )}
+                    {provider.contact.instagram && (
+                      <div className="flex items-center space-x-2 text-gray-600">
+                        <Instagram size={16} />
+                        <a href={`https://instagram.com/${provider.contact.instagram.replace('@', '')}`} className="text-blue-600 hover:underline">
+                          {provider.contact.instagram}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  )
+}
