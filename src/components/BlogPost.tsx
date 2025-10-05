@@ -5,7 +5,8 @@ import Header from './Header'
 import Footer from './Footer'
 import Link from 'next/link'
 import { Calendar, User, ArrowLeft, Share2, BookOpen } from 'lucide-react'
-import { BlogPost, getBlogPostBySlug } from '@/lib/database'
+import { getBlogPostBySlug } from '@/lib/database'
+import type { BlogPost } from '@/lib/database'
 
 interface BlogPostProps {
   slug: string
@@ -101,11 +102,11 @@ export default function BlogPost({ slug }: BlogPostProps) {
             <div className="flex items-center space-x-6 text-gray-600 mb-6">
               <div className="flex items-center">
                 <Calendar size={20} className="mr-2" />
-                {new Date(blogPost.published_at).toLocaleDateString('en-US', {
+                {blogPost.published_at ? new Date(blogPost.published_at).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric'
-                })}
+                }) : 'Recently'}
               </div>
               <div className="flex items-center">
                 <User size={20} className="mr-2" />
@@ -118,14 +119,20 @@ export default function BlogPost({ slug }: BlogPostProps) {
             </div>
 
             <div className="flex flex-wrap gap-2 mb-8">
-              {blogPost.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full"
-                >
-                  {tag}
+              {blogPost.tags && blogPost.tags.length > 0 ? (
+                blogPost.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full"
+                  >
+                    {tag}
+                  </span>
+                ))
+              ) : (
+                <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
+                  {blogPost.category || 'General'}
                 </span>
-              ))}
+              )}
             </div>
           </div>
 
@@ -158,7 +165,7 @@ export default function BlogPost({ slug }: BlogPostProps) {
               </div>
               
               <div className="text-sm text-gray-500">
-                Last updated: {new Date(blogPost.published_at).toLocaleDateString()}
+                Last updated: {blogPost.published_at ? new Date(blogPost.published_at).toLocaleDateString() : 'Recently'}
               </div>
             </div>
           </div>

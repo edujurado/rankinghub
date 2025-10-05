@@ -5,8 +5,8 @@ import { Star, CheckCircle, Mail, Phone, Globe, Instagram, MapPin, Star as StarI
 import toast from 'react-hot-toast'
 import Header from './Header'
 import Footer from './Footer'
-import { Provider } from '@/lib/database'
 import { getProviderById, createContactSubmission, incrementProviderView } from '@/lib/database'
+import type { Provider } from '@/lib/database'
 
 interface ProviderProfileProps {
   providerId: string

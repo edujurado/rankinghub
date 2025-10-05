@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Star, CheckCircle, Flag, Eye, MessageCircle, BarChart3 } from 'lucide-react'
-import { Provider } from '@/lib/database'
 import { getProvidersByCategory } from '@/lib/database'
+import type { Provider } from '@/lib/database'
 
 interface RankingListProps {
   category: string

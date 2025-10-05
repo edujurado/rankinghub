@@ -5,7 +5,8 @@ import Header from './Header'
 import Footer from './Footer'
 import Link from 'next/link'
 import { Calendar, User, ArrowRight } from 'lucide-react'
-import { BlogPost, getBlogPosts, getBlogPostsPaginated } from '@/lib/database'
+import { getBlogPosts, getBlogPostsPaginated } from '@/lib/database'
+import type { BlogPost } from '@/lib/database'
 
 export default function BlogPage() {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
