@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Mail } from 'lucide-react'
+import { subscribeToNewsletter } from '@/lib/database'
 
 export default function Newsletter() {
   const [email, setEmail] = useState('')
@@ -10,10 +11,13 @@ export default function Newsletter() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (email.trim()) {
-      // TODO: Integrate with email service (Mailchimp, Brevo, etc.)
-      console.log('Newsletter signup:', email)
-      setIsSubscribed(true)
-      setEmail('')
+      const success = await subscribeToNewsletter(email, undefined, undefined, ['general'], 'website')
+      if (success) {
+        setIsSubscribed(true)
+        setEmail('')
+      } else {
+        alert('Sorry, there was an error subscribing you to our newsletter. Please try again.')
+      }
     }
   }
 

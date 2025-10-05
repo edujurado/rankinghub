@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Star, CheckCircle, Flag, Eye, MessageCircle, BarChart3 } from 'lucide-react'
 import { Provider } from '@/types'
-import { getProvidersByCategory } from '@/lib/data'
+import { getProvidersByCategory } from '@/lib/database'
 import ProviderCard from './ProviderCard'
 
 interface RankingListProps {
@@ -13,7 +13,18 @@ interface RankingListProps {
 
 export default function RankingList({ category, searchQuery }: RankingListProps) {
   const [sortBy, setSortBy] = useState<'rating' | 'price' | 'popularity'>('rating')
-  const providers = getProvidersByCategory(category, searchQuery)
+  const [providers, setProviders] = useState<Provider[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchProviders = async () => {
+      setLoading(true)
+      const data = await getProvidersByCategory(category, searchQuery, sortBy)
+      setProviders(data)
+      setLoading(false)
+    }
+    fetchProviders()
+  }, [category, searchQuery, sortBy])
 
   const getCountryFlag = (country: string) => {
     const flags: { [key: string]: string } = {
@@ -34,6 +45,15 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
         className={i < Math.floor(rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}
       />
     ))
+  }
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading providers...</p>
+      </div>
+    )
   }
 
   if (providers.length === 0) {

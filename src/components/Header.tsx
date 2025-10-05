@@ -1,11 +1,31 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
-import { Search, Menu, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Menu, X, User, LogOut } from 'lucide-react'
+import AuthModal from './AuthModal'
+import { getCurrentUser, signOut } from '@/lib/auth'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await getCurrentUser()
+      setUser(currentUser)
+      setLoading(false)
+    }
+    fetchUser()
+  }, [])
+
+  const handleSignOut = async () => {
+    await signOut()
+    setUser(null)
+    window.location.reload()
+  }
 
   return (
     <header className="bg-yellow-400 shadow-md">
@@ -25,12 +45,40 @@ export default function Header() {
             <Link href="/services" className="text-black hover:text-gray-700 font-medium">
               Services in NYC
             </Link>
+            <Link href="/blog" className="text-black hover:text-gray-700 font-medium">
+              Blog
+            </Link>
             <Link href="/contact" className="text-black hover:text-gray-700 font-medium">
               Contact Us
             </Link>
-            <button className="btn-secondary">
-              Sign Up
-            </button>
+            
+            {user ? (
+              <div className="flex items-center space-x-4">
+                {user.role === 'admin' && (
+                  <Link href="/admin" className="text-black hover:text-gray-700 font-medium">
+                    Admin
+                  </Link>
+                )}
+                <div className="flex items-center space-x-2">
+                  <User size={20} />
+                  <span className="text-black font-medium">{user.email}</span>
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center space-x-1 text-black hover:text-gray-700"
+                >
+                  <LogOut size={20} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setIsAuthModalOpen(true)}
+                className="btn-secondary"
+              >
+                Sign Up
+              </button>
+            )}
           </nav>
 
           {/* Mobile menu button */}
@@ -52,16 +100,50 @@ export default function Header() {
               <Link href="/services" className="block px-3 py-2 text-black hover:text-gray-700">
                 Services in NYC
               </Link>
+              <Link href="/blog" className="block px-3 py-2 text-black hover:text-gray-700">
+                Blog
+              </Link>
               <Link href="/contact" className="block px-3 py-2 text-black hover:text-gray-700">
                 Contact Us
               </Link>
-              <button className="w-full text-left px-3 py-2 btn-secondary">
-                Sign Up
-              </button>
+              
+              {user ? (
+                <div className="space-y-2">
+                  {user.role === 'admin' && (
+                    <Link href="/admin" className="block px-3 py-2 text-black hover:text-gray-700">
+                      Admin
+                    </Link>
+                  )}
+                  <div className="px-3 py-2 text-black">
+                    <User size={16} className="inline mr-2" />
+                    {user.email}
+                  </div>
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full text-left px-3 py-2 text-black hover:text-gray-700"
+                  >
+                    <LogOut size={16} className="inline mr-2" />
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="w-full text-left px-3 py-2 btn-secondary"
+                >
+                  Sign Up
+                </button>
+              )}
             </div>
           </div>
         )}
       </div>
+      
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
     </header>
   )
 }

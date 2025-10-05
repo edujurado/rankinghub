@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Star, CheckCircle, Mail, Phone, Globe, Instagram, MapPin, Star as StarIcon } from 'lucide-react'
 import Header from './Header'
 import Footer from './Footer'
 import { Provider } from '@/types'
-import { mockProviders } from '@/lib/data'
+import { getProviderById, createContactSubmission, incrementProviderView } from '@/lib/database'
 
 interface ProviderProfileProps {
   providerId: string
@@ -23,9 +23,17 @@ export default function ProviderProfile({ providerId }: ProviderProfileProps) {
   })
 
   // Find provider by ID
-  useState(() => {
-    const foundProvider = mockProviders.find(p => p.id === providerId)
-    setProvider(foundProvider || null)
+  useEffect(() => {
+    const fetchProvider = async () => {
+      const foundProvider = await getProviderById(providerId)
+      setProvider(foundProvider)
+      
+      // Track page view
+      if (foundProvider) {
+        await incrementProviderView(providerId)
+      }
+    }
+    fetchProvider()
   }, [providerId])
 
   if (!provider) {
@@ -68,11 +76,35 @@ export default function ProviderProfile({ providerId }: ProviderProfileProps) {
     return flags[country] || '🌍'
   }
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Send email to provider
-    console.log('Contact form submitted:', contactForm)
-    alert('Thank you! Your message has been sent to the provider.')
+    
+    if (!provider) return
+    
+    const success = await createContactSubmission({
+      provider_id: provider.id,
+      name: contactForm.name,
+      email: contactForm.email,
+      phone: contactForm.phone,
+      event_date: contactForm.eventDate,
+      event_type: contactForm.eventType,
+      message: contactForm.message,
+      status: 'new'
+    })
+    
+    if (success) {
+      alert('Thank you! Your message has been sent to the provider.')
+      setContactForm({
+        name: '',
+        email: '',
+        phone: '',
+        eventDate: '',
+        eventType: '',
+        message: ''
+      })
+    } else {
+      alert('Sorry, there was an error sending your message. Please try again.')
+    }
   }
 
   const skills = [
