@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { User } from '@supabase/supabase-js'
+import { createUserProfile } from './auth-simple'
 
 export interface AuthUser {
   id: string
@@ -51,20 +52,20 @@ export async function signUp(email: string, password: string, userData: {
 
   // Create user record in our users table
   if (data.user) {
-    const { error: userError } = await supabase
-      .from('users')
-      .insert({
+    try {
+      const success = await createUserProfile({
         id: data.user.id,
         email: email,
         name: userData.name,
         role: userData.role,
-        phone: userData.phone,
-        is_active: true
+        phone: userData.phone
       })
 
-    if (userError) {
-      console.error('Error creating user record:', userError)
-      // Don't fail the signup, just log the error
+      if (!success) {
+        console.warn('User profile creation failed, but signup was successful. User can still sign in.')
+      }
+    } catch (error) {
+      console.warn('User profile creation failed, but signup was successful. User can still sign in.', error)
     }
   }
 
