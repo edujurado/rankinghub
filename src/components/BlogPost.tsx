@@ -1,77 +1,69 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Header from './Header'
 import Footer from './Footer'
 import Link from 'next/link'
 import { Calendar, User, ArrowLeft, Share2, BookOpen } from 'lucide-react'
+import { BlogPost, getBlogPostBySlug } from '@/lib/database'
 
 interface BlogPostProps {
   slug: string
 }
 
 export default function BlogPost({ slug }: BlogPostProps) {
-  // Mock blog post data - in real app, fetch from database
-  const blogPost = {
-    id: '1',
-    title: 'Top 10 DJs in NYC for 2024',
-    slug: 'top-10-djs-nyc-2024',
-    content: `
-      <h2>Discover the Best DJs in New York City</h2>
-      <p>New York City is home to some of the most talented DJs in the world. Whether you're planning a wedding, corporate event, or birthday party, finding the right DJ can make or break your event.</p>
-      
-      <h3>What Makes a Great DJ?</h3>
-      <p>A great DJ doesn't just play music – they read the crowd, create energy, and ensure everyone has a memorable time. Here are the key qualities to look for:</p>
-      
-      <ul>
-        <li><strong>Experience:</strong> Years of experience in various event types</li>
-        <li><strong>Music Knowledge:</strong> Deep understanding of different genres and eras</li>
-        <li><strong>Equipment:</strong> Professional-grade sound and lighting equipment</li>
-        <li><strong>Personality:</strong> Ability to engage with guests and create atmosphere</li>
-        <li><strong>Reliability:</strong> Punctual, professional, and dependable</li>
-      </ul>
-      
-      <h3>Our Top 10 DJs in NYC for 2024</h3>
-      <p>After extensive research and client feedback, we've compiled our list of the top 10 DJs in New York City for 2024. These professionals have consistently delivered exceptional performances and received outstanding reviews.</p>
-      
-      <h4>1. Chris Evans</h4>
-      <p>With over 10 years of experience in NYC nightlife, Chris Evans is known for his versatility and ability to read any crowd. His professional equipment and seamless mixing make him a top choice for high-end events.</p>
-      
-      <h4>2. Lucas Pereira</h4>
-      <p>Brazilian DJ Lucas Pereira brings international flair to NYC events. Specializing in Latin music and international events, he's perfect for diverse, multicultural celebrations.</p>
-      
-      <h4>3. Juan Martinez</h4>
-      <p>Versatile and experienced, Juan Martinez excels in multiple genres. His expertise spans from corporate events to wild dance parties, making him adaptable to any event type.</p>
-      
-      <h3>How to Choose the Right DJ</h3>
-      <p>When selecting a DJ for your event, consider these factors:</p>
-      
-      <ol>
-        <li><strong>Event Type:</strong> Different events require different music styles and energy levels</li>
-        <li><strong>Venue:</strong> Ensure the DJ has experience with your venue type and size</li>
-        <li><strong>Budget:</strong> DJ prices vary significantly based on experience and equipment</li>
-        <li><strong>Music Preferences:</strong> Discuss your musical preferences and any must-play songs</li>
-        <li><strong>References:</strong> Ask for references from previous clients</li>
-      </ol>
-      
-      <h3>Pricing Guide</h3>
-      <p>DJ pricing in NYC typically ranges from $500 to $3,000+ depending on experience, equipment, and event duration. Here's a general breakdown:</p>
-      
-      <ul>
-        <li><strong>Budget DJs:</strong> $500-$1,000 (newer DJs, basic equipment)</li>
-        <li><strong>Mid-range DJs:</strong> $1,000-$2,000 (experienced, good equipment)</li>
-        <li><strong>Premium DJs:</strong> $2,000+ (top-tier, professional equipment)</li>
-      </ul>
-      
-      <h3>Conclusion</h3>
-      <p>Choosing the right DJ is crucial for your event's success. Take time to research, read reviews, and meet with potential DJs to ensure they're the right fit for your event and budget.</p>
-    `,
-    featured_image: '/blog/djs-2024.jpg',
-    author_name: 'RankingHub Team',
-    published_at: '2024-01-15',
-    category: 'DJs',
-    tags: ['DJs', 'NYC', 'Events', 'Music'],
-    meta_title: 'Top 10 DJs in NYC for 2024 | RankingHub',
-    meta_description: 'Find the best DJs in New York City for your event. Our comprehensive ranking features top-rated DJs with verified reviews.',
-    view_count: 1250
+  const [blogPost, setBlogPost] = useState<BlogPost | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchBlogPost = async () => {
+      try {
+        const post = await getBlogPostBySlug(slug)
+        setBlogPost(post)
+      } catch (error) {
+        console.error('Error fetching blog post:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBlogPost()
+  }, [slug])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading blog post...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
   }
+
+  if (!blogPost) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center py-12">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Blog Post Not Found</h1>
+            <p className="text-gray-600 mb-8">The blog post you're looking for doesn't exist or has been removed.</p>
+            <Link href="/blog" className="btn-primary">
+              <ArrowLeft size={16} className="inline mr-2" />
+              Back to Blog
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
 
   return (
     <div className="min-h-screen bg-gray-50">

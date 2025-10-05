@@ -390,6 +390,28 @@ export async function getBlogPosts(limit: number = 10, featured?: boolean): Prom
   return data || []
 }
 
+export async function getBlogPostsPaginated(limit: number = 10, offset: number = 0, featured?: boolean): Promise<BlogPost[]> {
+  let query = supabase
+    .from('blog_posts')
+    .select('*')
+    .eq('is_published', true)
+    .order('published_at', { ascending: false })
+    .range(offset, offset + limit - 1)
+
+  if (featured !== undefined) {
+    query = query.eq('is_featured', featured)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('Error fetching blog posts:', error)
+    return []
+  }
+
+  return data || []
+}
+
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
   const { data, error } = await supabase
     .from('blog_posts')

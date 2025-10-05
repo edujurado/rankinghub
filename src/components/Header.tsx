@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Search, Menu, X, User, LogOut } from 'lucide-react'
+import toast from 'react-hot-toast'
 import AuthModal from './AuthModal'
 import { getCurrentUser, signOut } from '@/lib/auth'
 
@@ -22,9 +23,18 @@ export default function Header() {
   }, [])
 
   const handleSignOut = async () => {
-    await signOut()
-    setUser(null)
-    window.location.reload()
+    try {
+      await signOut()
+      toast.success('Successfully signed out!', {
+        duration: 2000,
+      })
+      setUser(null)
+      window.location.reload()
+    } catch (error) {
+      toast.error('Error signing out. Please try again.', {
+        duration: 5000,
+      })
+    }
   }
 
   return (

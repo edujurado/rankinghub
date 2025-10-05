@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { X, Mail, Lock, User, Phone, Eye, EyeOff } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { signUp, signIn } from '@/lib/auth'
 
 interface AuthModalProps {
@@ -37,13 +38,31 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }: A
     setLoading(true)
     setError('')
 
-    const result = await signIn(signInData.email, signInData.password)
-    
-    if (result.success) {
-      onClose()
-      window.location.reload()
-    } else {
-      setError(result.error || 'Sign in failed')
+    const loadingToast = toast.loading('Signing in...')
+
+    try {
+      const result = await signIn(signInData.email, signInData.password)
+      
+      if (result.success) {
+        toast.dismiss(loadingToast)
+        toast.success('Successfully signed in!', {
+          duration: 2000,
+        })
+        onClose()
+        window.location.reload()
+      } else {
+        toast.dismiss(loadingToast)
+        toast.error(result.error || 'Sign in failed', {
+          duration: 5000,
+        })
+        setError(result.error || 'Sign in failed')
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast)
+      toast.error('An unexpected error occurred. Please try again.', {
+        duration: 5000,
+      })
+      setError('An unexpected error occurred')
     }
     
     setLoading(false)
@@ -55,23 +74,43 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }: A
     setError('')
 
     if (signUpData.password !== signUpData.confirmPassword) {
+      toast.error('Passwords do not match', {
+        duration: 5000,
+      })
       setError('Passwords do not match')
       setLoading(false)
       return
     }
 
-    const result = await signUp(signUpData.email, signUpData.password, {
-      name: signUpData.name,
-      phone: signUpData.phone,
-      role: signUpData.role
-    })
-    
-    if (result.success) {
-      setError('')
-      alert('Account created! Please check your email to verify your account.')
-      setMode('signin')
-    } else {
-      setError(result.error || 'Sign up failed')
+    const loadingToast = toast.loading('Creating account...')
+
+    try {
+      const result = await signUp(signUpData.email, signUpData.password, {
+        name: signUpData.name,
+        phone: signUpData.phone,
+        role: signUpData.role
+      })
+      
+      if (result.success) {
+        toast.dismiss(loadingToast)
+        toast.success('Account created! Please check your email to verify your account.', {
+          duration: 6000,
+        })
+        setError('')
+        setMode('signin')
+      } else {
+        toast.dismiss(loadingToast)
+        toast.error(result.error || 'Sign up failed', {
+          duration: 5000,
+        })
+        setError(result.error || 'Sign up failed')
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast)
+      toast.error('An unexpected error occurred. Please try again.', {
+        duration: 5000,
+      })
+      setError('An unexpected error occurred')
     }
     
     setLoading(false)

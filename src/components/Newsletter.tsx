@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Mail } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { subscribeToNewsletter } from '@/lib/database'
 
 export default function Newsletter() {
@@ -11,12 +12,28 @@ export default function Newsletter() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (email.trim()) {
-      const success = await subscribeToNewsletter(email, undefined, undefined, ['general'], 'website')
-      if (success) {
-        setIsSubscribed(true)
-        setEmail('')
-      } else {
-        alert('Sorry, there was an error subscribing you to our newsletter. Please try again.')
+      const loadingToast = toast.loading('Subscribing to newsletter...')
+      
+      try {
+        const success = await subscribeToNewsletter(email, undefined, undefined, ['general'], 'website')
+        if (success) {
+          toast.dismiss(loadingToast)
+          toast.success('Successfully subscribed to our newsletter!', {
+            duration: 4000,
+          })
+          setIsSubscribed(true)
+          setEmail('')
+        } else {
+          toast.dismiss(loadingToast)
+          toast.error('Sorry, there was an error subscribing you to our newsletter. Please try again.', {
+            duration: 5000,
+          })
+        }
+      } catch (error) {
+        toast.dismiss(loadingToast)
+        toast.error('An unexpected error occurred. Please try again.', {
+          duration: 5000,
+        })
       }
     }
   }

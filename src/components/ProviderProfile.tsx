@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Star, CheckCircle, Mail, Phone, Globe, Instagram, MapPin, Star as StarIcon } from 'lucide-react'
+import toast from 'react-hot-toast'
 import Header from './Header'
 import Footer from './Footer'
 import { Provider } from '@/lib/database'
@@ -81,29 +82,44 @@ export default function ProviderProfile({ providerId }: ProviderProfileProps) {
     
     if (!provider) return
     
-    const success = await createContactSubmission({
-      provider_id: provider.id,
-      name: contactForm.name,
-      email: contactForm.email,
-      phone: contactForm.phone,
-      event_date: contactForm.eventDate,
-      event_type: contactForm.eventType,
-      message: contactForm.message,
-      status: 'new'
-    })
+    const loadingToast = toast.loading('Sending your message...')
     
-    if (success) {
-      alert('Thank you! Your message has been sent to the provider.')
-      setContactForm({
-        name: '',
-        email: '',
-        phone: '',
-        eventDate: '',
-        eventType: '',
-        message: ''
+    try {
+      const success = await createContactSubmission({
+        provider_id: provider.id,
+        name: contactForm.name,
+        email: contactForm.email,
+        phone: contactForm.phone,
+        event_date: contactForm.eventDate,
+        event_type: contactForm.eventType,
+        message: contactForm.message,
+        status: 'new'
       })
-    } else {
-      alert('Sorry, there was an error sending your message. Please try again.')
+      
+      if (success) {
+        toast.dismiss(loadingToast)
+        toast.success('Thank you! Your message has been sent to the provider.', {
+          duration: 4000,
+        })
+        setContactForm({
+          name: '',
+          email: '',
+          phone: '',
+          eventDate: '',
+          eventType: '',
+          message: ''
+        })
+      } else {
+        toast.dismiss(loadingToast)
+        toast.error('Sorry, there was an error sending your message. Please try again.', {
+          duration: 5000,
+        })
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast)
+      toast.error('An unexpected error occurred. Please try again.', {
+        duration: 5000,
+      })
     }
   }
 

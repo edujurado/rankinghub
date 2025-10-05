@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 import Header from './Header'
 import Footer from './Footer'
 import { Mail, Phone, MapPin, Clock } from 'lucide-react'
@@ -16,11 +17,39 @@ export default function ContactPage() {
     message: ''
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Send email
-    console.log('Contact form submitted:', formData)
-    alert('Thank you! We\'ll get back to you within 24 hours.')
+    
+    const loadingToast = toast.loading('Sending your message...')
+    
+    try {
+      // TODO: Send email via API
+      console.log('Contact form submitted:', formData)
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      toast.dismiss(loadingToast)
+      toast.success('Thank you! We\'ll get back to you within 24 hours.', {
+        duration: 5000,
+      })
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        serviceType: '',
+        eventDate: '',
+        budget: '',
+        message: ''
+      })
+    } catch (error) {
+      toast.dismiss(loadingToast)
+      toast.error('Sorry, there was an error sending your message. Please try again.', {
+        duration: 5000,
+      })
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
