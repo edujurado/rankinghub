@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Star, CheckCircle, Mail, Phone, Globe, Instagram, MapPin, Star as StarIcon } from 'lucide-react'
 import Header from './Header'
 import Footer from './Footer'
-import { Provider } from '@/types'
+import { Provider } from '@/lib/database'
 import { getProviderById, createContactSubmission, incrementProviderView } from '@/lib/database'
 
 interface ProviderProfileProps {
@@ -108,11 +108,11 @@ export default function ProviderProfile({ providerId }: ProviderProfileProps) {
   }
 
   const skills = [
-    { name: 'Punctuality', rating: provider.skills.punctuality },
-    { name: 'Professionalism', rating: provider.skills.professionalism },
-    { name: 'Reliability', rating: provider.skills.reliability },
-    { name: 'Price', rating: provider.skills.price },
-    { name: 'Client Satisfaction', rating: provider.skills.clientSatisfaction }
+    { name: 'Punctuality', rating: provider.punctuality || 0 },
+    { name: 'Professionalism', rating: provider.professionalism || 0 },
+    { name: 'Reliability', rating: provider.reliability || 0 },
+    { name: 'Price', rating: provider.price || 0 },
+    { name: 'Client Satisfaction', rating: provider.client_satisfaction || 0 }
   ]
 
   return (
@@ -128,13 +128,9 @@ export default function ProviderProfile({ providerId }: ProviderProfileProps) {
               <div className="flex-shrink-0">
                 <div className="w-32 h-32 bg-gray-200 rounded-full overflow-hidden">
                   <img
-                    src={provider.image}
+                    src={provider.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=128`}
                     alt={provider.name}
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=128`
-                    }}
                   />
                 </div>
               </div>
@@ -196,8 +192,8 @@ export default function ProviderProfile({ providerId }: ProviderProfileProps) {
               <div className="card">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Portfolio</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {provider.portfolio.length > 0 ? (
-                    provider.portfolio.map((image, index) => (
+                  {provider.portfolio_images && provider.portfolio_images.length > 0 ? (
+                    provider.portfolio_images.map((image, index) => (
                       <div key={index} className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
                         <img
                           src={image}
@@ -316,25 +312,27 @@ export default function ProviderProfile({ providerId }: ProviderProfileProps) {
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2 text-gray-600">
                       <Mail size={16} />
-                      <span>{provider.contact.email}</span>
+                      <span>{provider.email}</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <Phone size={16} />
-                      <span>{provider.contact.phone}</span>
-                    </div>
-                    {provider.contact.website && (
+                    {provider.phone && (
+                      <div className="flex items-center space-x-2 text-gray-600">
+                        <Phone size={16} />
+                        <span>{provider.phone}</span>
+                      </div>
+                    )}
+                    {provider.website && (
                       <div className="flex items-center space-x-2 text-gray-600">
                         <Globe size={16} />
-                        <a href={provider.contact.website} className="text-blue-600 hover:underline">
+                        <a href={provider.website} className="text-blue-600 hover:underline">
                           Website
                         </a>
                       </div>
                     )}
-                    {provider.contact.instagram && (
+                    {provider.instagram && (
                       <div className="flex items-center space-x-2 text-gray-600">
                         <Instagram size={16} />
-                        <a href={`https://instagram.com/${provider.contact.instagram.replace('@', '')}`} className="text-blue-600 hover:underline">
-                          {provider.contact.instagram}
+                        <a href={`https://instagram.com/${provider.instagram.replace('@', '')}`} className="text-blue-600 hover:underline">
+                          {provider.instagram}
                         </a>
                       </div>
                     )}

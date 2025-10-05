@@ -81,13 +81,9 @@ export default function BlogPage() {
                 <article key={post.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
                   <div className="aspect-w-16 aspect-h-9">
                     <img
-                      src={post.featured_image}
+                      src={post.featured_image || '/api/placeholder/400/300'}
                       alt={post.title}
                       className="w-full h-48 object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement
-                        target.src = '/api/placeholder/400/300'
-                      }}
                     />
                   </div>
                   

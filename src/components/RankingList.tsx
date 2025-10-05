@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Star, CheckCircle, Flag, Eye, MessageCircle, BarChart3 } from 'lucide-react'
-import { Provider } from '@/types'
+import { Provider } from '@/lib/database'
 import { getProvidersByCategory } from '@/lib/database'
-import ProviderCard from './ProviderCard'
 
 interface RankingListProps {
   category: string
@@ -108,13 +107,9 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
               <div className="flex-shrink-0">
                 <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
                   <img
-                    src={provider.image}
+                    src={provider.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=64`}
                     alt={provider.name}
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=64`
-                    }}
                   />
                 </div>
               </div>
@@ -144,14 +139,20 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
 
               {/* Action Buttons */}
               <div className="flex-shrink-0 flex space-x-2">
-                <button className="btn-primary text-sm px-4 py-2">
+                <a 
+                  href={`/providers/${provider.id}`}
+                  className="btn-primary text-sm px-4 py-2"
+                >
                   <Eye size={16} className="inline mr-1" />
                   View Profile
-                </button>
-                <button className="btn-secondary text-sm px-4 py-2">
+                </a>
+                <a 
+                  href={`/providers/${provider.id}#contact`}
+                  className="btn-secondary text-sm px-4 py-2"
+                >
                   <MessageCircle size={16} className="inline mr-1" />
                   Contact
-                </button>
+                </a>
                 <button className="btn-outline text-sm px-4 py-2">
                   <BarChart3 size={16} className="inline mr-1" />
                   Metrics

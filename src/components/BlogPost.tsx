@@ -140,13 +140,9 @@ export default function BlogPost({ slug }: BlogPostProps) {
           {/* Featured Image */}
           <div className="mb-8">
             <img
-              src={blogPost.featured_image}
+              src={blogPost.featured_image || '/api/placeholder/800/400'}
               alt={blogPost.title}
               className="w-full h-64 md:h-96 object-cover rounded-lg"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement
-                target.src = '/api/placeholder/800/400'
-              }}
             />
           </div>
 
