@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import Header from './Header'
 import Footer from './Footer'
 import { getProviderById, createContactSubmission, incrementProviderView } from '@/lib/database'
+import { trackProviderView, trackContactForm } from '@/lib/gtag'
 import type { Provider } from '@/lib/database'
 
 interface ProviderProfileProps {
@@ -26,12 +27,14 @@ export default function ProviderProfile({ providerId }: ProviderProfileProps) {
   // Find provider by ID
   useEffect(() => {
     const fetchProvider = async () => {
-      const foundProvider = await getProviderById(providerId)
+      const foundProvider:any = await getProviderById(providerId)
       setProvider(foundProvider)
       
-      // Track page view
+      // Track page view and GA4 event
       if (foundProvider) {
         await incrementProviderView(providerId)
+        // Track provider view in GA4
+        trackProviderView(foundProvider.name, foundProvider.category)
       }
     }
     fetchProvider()
@@ -101,6 +104,8 @@ export default function ProviderProfile({ providerId }: ProviderProfileProps) {
         toast.success('Thank you! Your message has been sent to the provider.', {
           duration: 4000,
         })
+        // Track contact form submission in GA4
+        trackContactForm(provider.name, contactForm.eventType)
         setContactForm({
           name: '',
           email: '',

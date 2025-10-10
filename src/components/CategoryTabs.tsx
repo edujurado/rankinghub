@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getProvidersByCategory } from '@/lib/database'
+import { trackCategoryFilter } from '@/lib/gtag'
 
 interface CategoryTabsProps {
   activeCategory: string
@@ -46,12 +47,18 @@ export default function CategoryTabs({ activeCategory, onCategoryChange }: Categ
     fetchCategoryCounts()
   }, [])
 
+  const handleCategoryClick = (categoryId: string) => {
+    // Track category filter in GA4
+    trackCategoryFilter(categoryId)
+    onCategoryChange(categoryId)
+  }
+
   return (
     <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
       {categories.map((category) => (
         <button
           key={category.id}
-          onClick={() => onCategoryChange(category.id)}
+          onClick={() => handleCategoryClick(category.id)}
           disabled={loading}
           className={`flex-1 py-3 px-4 rounded-md font-semibold transition-all duration-200 ${
             activeCategory === category.id

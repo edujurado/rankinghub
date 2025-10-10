@@ -501,6 +501,10 @@ FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "Users can update own data" ON users
 FOR UPDATE USING (auth.uid() = id);
 
+-- Allow users to insert their own record during signup
+CREATE POLICY "Users can insert own data" ON users
+FOR INSERT WITH CHECK (auth.uid() = id);
+
 -- Allow public read access to providers
 CREATE POLICY "Public read access to providers" ON providers
 FOR SELECT USING (is_active = TRUE);

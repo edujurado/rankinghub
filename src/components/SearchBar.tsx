@@ -2,17 +2,21 @@
 
 import { useState } from 'react'
 import { Search } from 'lucide-react'
+import { trackSearch } from '@/lib/gtag'
 
 interface SearchBarProps {
   onSearch: (query: string) => void
   initialQuery?: string
+  resultsCount?: number
 }
 
-export default function SearchBar({ onSearch, initialQuery = '' }: SearchBarProps) {
+export default function SearchBar({ onSearch, initialQuery = '', resultsCount = 0 }: SearchBarProps) {
   const [query, setQuery] = useState(initialQuery)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    // Track search in GA4
+    trackSearch(query, resultsCount)
     onSearch(query)
   }
 

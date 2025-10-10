@@ -193,9 +193,22 @@ export async function getProvidersByCategory(
   limit?: number
 ): Promise<Provider[]> {
   let query = supabase
-    .from('provider_rankings')
-    .select('*')
-    .eq('category_slug', categorySlug)
+    .from('providers')
+    .select(`
+      *,
+      categories (
+        name,
+        slug
+      ),
+      skills (
+        punctuality,
+        professionalism,
+        reliability,
+        price,
+        client_satisfaction
+      )
+    `)
+    .eq('categories.slug', categorySlug)
 
   if (searchQuery) {
     query = query.or(`name.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%`)
@@ -207,7 +220,7 @@ export async function getProvidersByCategory(
       query = query.order('rating', { ascending: false })
       break
     case 'price':
-      query = query.order('price', { ascending: true })
+      query = query.order('skills.price', { ascending: true })
       break
     case 'popularity':
       query = query.order('view_count', { ascending: false })
@@ -227,13 +240,35 @@ export async function getProvidersByCategory(
     return []
   }
 
-  return data || []
+  return data?.map(provider => ({
+    ...provider,
+    category_name: provider.categories?.name,
+    category_slug: provider.categories?.slug,
+    punctuality: provider.skills?.[0]?.punctuality,
+    professionalism: provider.skills?.[0]?.professionalism,
+    reliability: provider.skills?.[0]?.reliability,
+    price: provider.skills?.[0]?.price,
+    client_satisfaction: provider.skills?.[0]?.client_satisfaction
+  })) || []
 }
 
 export async function getProviderById(id: string): Promise<Provider | null> {
   const { data, error } = await supabase
-    .from('provider_rankings')
-    .select('*')
+    .from('providers')
+    .select(`
+      *,
+      categories (
+        name,
+        slug
+      ),
+      skills (
+        punctuality,
+        professionalism,
+        reliability,
+        price,
+        client_satisfaction
+      )
+    `)
     .eq('id', id)
     .single()
 
@@ -242,13 +277,35 @@ export async function getProviderById(id: string): Promise<Provider | null> {
     return null
   }
 
-  return data
+  return {
+    ...data,
+    category_name: data.categories?.name,
+    category_slug: data.categories?.slug,
+    punctuality: data.skills?.[0]?.punctuality,
+    professionalism: data.skills?.[0]?.professionalism,
+    reliability: data.skills?.[0]?.reliability,
+    price: data.skills?.[0]?.price,
+    client_satisfaction: data.skills?.[0]?.client_satisfaction
+  }
 }
 
 export async function getFeaturedProviders(limit: number = 6): Promise<Provider[]> {
   const { data, error } = await supabase
-    .from('provider_rankings')
-    .select('*')
+    .from('providers')
+    .select(`
+      *,
+      categories (
+        name,
+        slug
+      ),
+      skills (
+        punctuality,
+        professionalism,
+        reliability,
+        price,
+        client_satisfaction
+      )
+    `)
     .eq('featured', true)
     .order('rating', { ascending: false })
     .limit(limit)
@@ -258,7 +315,16 @@ export async function getFeaturedProviders(limit: number = 6): Promise<Provider[
     return []
   }
 
-  return data || []
+  return data?.map(provider => ({
+    ...provider,
+    category_name: provider.categories?.name,
+    category_slug: provider.categories?.slug,
+    punctuality: provider.skills?.[0]?.punctuality,
+    professionalism: provider.skills?.[0]?.professionalism,
+    reliability: provider.skills?.[0]?.reliability,
+    price: provider.skills?.[0]?.price,
+    client_satisfaction: provider.skills?.[0]?.client_satisfaction
+  })) || []
 }
 
 export async function searchProviders(
@@ -267,15 +333,28 @@ export async function searchProviders(
   limit: number = 20
 ): Promise<Provider[]> {
   let searchQuery = supabase
-    .from('provider_rankings')
-    .select('*')
+    .from('providers')
+    .select(`
+      *,
+      categories (
+        name,
+        slug
+      ),
+      skills (
+        punctuality,
+        professionalism,
+        reliability,
+        price,
+        client_satisfaction
+      )
+    `)
     .textSearch('name', query, {
       type: 'websearch',
       config: 'english'
     })
 
   if (categorySlug) {
-    searchQuery = searchQuery.eq('category_slug', categorySlug)
+    searchQuery = searchQuery.eq('categories.slug', categorySlug)
   }
 
   searchQuery = searchQuery.limit(limit)
@@ -287,7 +366,16 @@ export async function searchProviders(
     return []
   }
 
-  return data || []
+  return data?.map(provider => ({
+    ...provider,
+    category_name: provider.categories?.name,
+    category_slug: provider.categories?.slug,
+    punctuality: provider.skills?.[0]?.punctuality,
+    professionalism: provider.skills?.[0]?.professionalism,
+    reliability: provider.skills?.[0]?.reliability,
+    price: provider.skills?.[0]?.price,
+    client_satisfaction: provider.skills?.[0]?.client_satisfaction
+  })) || []
 }
 
 // Reviews
