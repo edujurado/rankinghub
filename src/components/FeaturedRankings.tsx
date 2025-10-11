@@ -1,86 +1,113 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Star, CheckCircle, Flag, Eye, MessageCircle, BarChart3, Award, TrendingUp } from 'lucide-react'
-import Link from 'next/link'
-import { getProvidersByCategory } from '@/lib/database'
-import type { Provider } from '@/lib/database'
+import { useState, useEffect } from "react";
+import {
+  Star,
+  CheckCircle,
+  Flag,
+  Eye,
+  MessageCircle,
+  BarChart3,
+  Award,
+  TrendingUp,
+} from "lucide-react";
+import Link from "next/link";
+import { getProvidersByCategory } from "@/lib/database";
+import type { Provider } from "@/lib/database";
 
 export default function FeaturedRankings() {
-  const [topDjs, setTopDjs] = useState<Provider[]>([])
-  const [topPhotographers, setTopPhotographers] = useState<Provider[]>([])
-  const [topVideographers, setTopVideographers] = useState<Provider[]>([])
-  const [loading, setLoading] = useState(true)
-  const [activeCategory, setActiveCategory] = useState<'djs' | 'photographers' | 'videographers'>('djs')
+  const [topDjs, setTopDjs] = useState<Provider[]>([]);
+  const [topPhotographers, setTopPhotographers] = useState<Provider[]>([]);
+  const [topVideographers, setTopVideographers] = useState<Provider[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<
+    "djs" | "photographers" | "videographers"
+  >("djs");
 
   useEffect(() => {
     const fetchTopProviders = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
         const [djs, photographers, videographers] = await Promise.all([
-          getProvidersByCategory('djs', undefined, 'rating', 5),
-          getProvidersByCategory('photographers', undefined, 'rating', 5),
-          getProvidersByCategory('videographers', undefined, 'rating', 5)
-        ])
-        setTopDjs(djs)
-        setTopPhotographers(photographers)
-        setTopVideographers(videographers)
+          getProvidersByCategory("djs", undefined, "rating", 5),
+          getProvidersByCategory("photographers", undefined, "rating", 5),
+          getProvidersByCategory("videographers", undefined, "rating", 5),
+        ]);
+        setTopDjs(djs);
+        setTopPhotographers(photographers);
+        setTopVideographers(videographers);
       } catch (error) {
-        console.error('Error fetching top providers:', error)
+        console.error("Error fetching top providers:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchTopProviders()
-  }, [])
+    };
+    fetchTopProviders();
+  }, []);
 
   const getCountryFlag = (country: string) => {
     const flags: { [key: string]: string } = {
-      'USA': '🇺🇸',
-      'Brazil': '🇧🇷',
-      'Mexico': '🇲🇽',
-      'Canada': '🇨🇦',
-      'UK': '🇬🇧'
-    }
-    return flags[country] || '🌍'
-  }
+      USA: "🇺🇸",
+      Brazil: "🇧🇷",
+      Mexico: "🇲🇽",
+      Canada: "🇨🇦",
+      UK: "🇬🇧",
+    };
+    return flags[country] || "🌍";
+  };
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
         size={16}
-        className={i < Math.floor(rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}
+        className={
+          i < Math.floor(rating)
+            ? "text-yellow-400 fill-current"
+            : "text-gray-300"
+        }
       />
-    ))
-  }
+    ));
+  };
 
   const getCurrentProviders = () => {
     switch (activeCategory) {
-      case 'djs': return topDjs
-      case 'photographers': return topPhotographers
-      case 'videographers': return topVideographers
-      default: return topDjs
+      case "djs":
+        return topDjs;
+      case "photographers":
+        return topPhotographers;
+      case "videographers":
+        return topVideographers;
+      default:
+        return topDjs;
     }
-  }
+  };
 
   const getCategoryTitle = () => {
     switch (activeCategory) {
-      case 'djs': return 'Top DJs'
-      case 'photographers': return 'Top Photographers'
-      case 'videographers': return 'Top Videographers'
-      default: return 'Top DJs'
+      case "djs":
+        return "Top DJs";
+      case "photographers":
+        return "Top Photographers";
+      case "videographers":
+        return "Top Videographers";
+      default:
+        return "Top DJs";
     }
-  }
+  };
 
   const getCategoryIcon = () => {
     switch (activeCategory) {
-      case 'djs': return '🎧'
-      case 'photographers': return '📸'
-      case 'videographers': return '🎥'
-      default: return '🎧'
+      case "djs":
+        return "🎧";
+      case "photographers":
+        return "📸";
+      case "videographers":
+        return "🎥";
+      default:
+        return "🎧";
     }
-  }
+  };
 
   return (
     <section className="py-16 bg-gray-50">
@@ -94,7 +121,7 @@ export default function FeaturedRankings() {
             </h2>
           </div>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Discover the highest-rated event service providers in New York City, 
+            Discover the highest-rated event service providers in New York City,
             ranked by client satisfaction, ratings, and performance metrics.
           </p>
         </div>
@@ -104,17 +131,17 @@ export default function FeaturedRankings() {
           <div className="bg-white rounded-xl p-2 shadow-lg">
             <div className="flex space-x-2">
               {[
-                { key: 'djs', label: 'DJs', icon: '🎧' },
-                { key: 'photographers', label: 'Photographers', icon: '📸' },
-                { key: 'videographers', label: 'Videographers', icon: '🎥' }
+                { key: "djs", label: "DJs", icon: "🎧" },
+                { key: "photographers", label: "Photographers", icon: "📸" },
+                { key: "videographers", label: "Videographers", icon: "🎥" },
               ].map((category) => (
                 <button
                   key={category.key}
                   onClick={() => setActiveCategory(category.key as any)}
                   className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center ${
                     activeCategory === category.key
-                      ? 'bg-yellow-400 text-black shadow-md'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      ? "bg-yellow-400 text-black shadow-md"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   }`}
                 >
                   <span className="mr-2 text-lg">{category.icon}</span>
@@ -132,8 +159,12 @@ export default function FeaturedRankings() {
               <div className="flex items-center">
                 <span className="text-3xl mr-3">{getCategoryIcon()}</span>
                 <div>
-                  <h3 className="text-2xl font-bold text-white">{getCategoryTitle()} in NYC</h3>
-                  <p className="text-blue-100">Based on ratings, reviews, and client satisfaction</p>
+                  <h3 className="text-2xl font-bold text-white">
+                    {getCategoryTitle()} in NYC
+                  </h3>
+                  <p className="text-blue-100">
+                    Based on ratings, reviews, and client satisfaction
+                  </p>
                 </div>
               </div>
               <div className="flex items-center text-white">
@@ -152,15 +183,24 @@ export default function FeaturedRankings() {
             ) : (
               <div className="space-y-4">
                 {getCurrentProviders().map((provider, index) => (
-                  <div key={provider.id} className="ranking-card hover:shadow-lg transition-all duration-200">
+                  <div
+                    key={provider.id}
+                    className="ranking-card hover:shadow-lg transition-all duration-200"
+                  >
                     <div className="flex items-center space-x-6">
                       {/* Position Number */}
                       <div className="flex-shrink-0">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                          index === 0 ? 'bg-yellow-400' : 
-                          index === 1 ? 'bg-gray-300' : 
-                          index === 2 ? 'bg-orange-400' : 'bg-gray-200'
-                        }`}>
+                        <div
+                          className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                            index === 0
+                              ? "bg-yellow-400"
+                              : index === 1
+                              ? "bg-gray-300"
+                              : index === 2
+                              ? "bg-orange-400"
+                              : "bg-gray-200"
+                          }`}
+                        >
                           <span className="text-xl font-bold text-black">
                             {index + 1}
                           </span>
@@ -171,7 +211,8 @@ export default function FeaturedRankings() {
                       <div className="flex-shrink-0">
                         <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
                           <img
-                            src={provider.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=64`}
+                            // src={provider.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=64`}
+                            src={`https://slzviagizhztbvczrcss.supabase.co/storage/v1/object/public/artist/avatar-profile.jpeg`}
                             alt={provider.name}
                             className="w-full h-full object-cover"
                           />
@@ -185,32 +226,40 @@ export default function FeaturedRankings() {
                             {provider.name}
                           </h3>
                           {provider.verified && (
-                            <CheckCircle size={20} className="text-blue-500 flex-shrink-0" />
+                            <CheckCircle
+                              size={20}
+                              className="text-blue-500 flex-shrink-0"
+                            />
                           )}
                         </div>
-                        
+
                         <div className="flex items-center space-x-4 text-sm text-gray-600">
                           <div className="flex items-center space-x-1">
                             <Flag size={16} />
-                            <span>{getCountryFlag(provider.country)} {provider.location}</span>
+                            <span>
+                              {getCountryFlag(provider.country)}{" "}
+                              {provider.location}
+                            </span>
                           </div>
                           <div className="flex items-center space-x-1">
                             {renderStars(provider.rating)}
-                            <span className="ml-1 font-medium">{provider.rating}</span>
+                            <span className="ml-1 font-medium">
+                              {provider.rating}
+                            </span>
                           </div>
                         </div>
                       </div>
 
                       {/* Action Buttons */}
                       <div className="flex-shrink-0 flex space-x-2">
-                        <a 
+                        <a
                           href={`/providers/${provider.id}`}
                           className="btn-primary text-sm px-4 py-2"
                         >
                           <Eye size={16} className="inline mr-1" />
                           View Profile
                         </a>
-                        <a 
+                        <a
                           href={`/providers/${provider.id}#contact`}
                           className="btn-secondary text-sm px-4 py-2"
                         >
@@ -226,8 +275,8 @@ export default function FeaturedRankings() {
 
             {/* View All Button */}
             <div className="text-center mt-8 pt-6 border-t border-gray-200">
-              <Link 
-                href="/rankings" 
+              <Link
+                href="/rankings"
                 className="inline-flex items-center bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-8 rounded-lg transition-colors duration-200"
               >
                 <BarChart3 size={20} className="mr-2" />
@@ -238,5 +287,5 @@ export default function FeaturedRankings() {
         </div>
       </div>
     </section>
-  )
+  );
 }

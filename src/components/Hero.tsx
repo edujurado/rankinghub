@@ -131,7 +131,8 @@ export default function Hero() {
                     <div className="flex-shrink-0">
                       <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
                         <img
-                          src={provider.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=64`}
+                          // src={provider.image_url || `https://slzviagizhztbvczrcss.supabase.co/storage/v1/object/public/artist/avatar-profile.jpeg`}
+                          src={ `https://slzviagizhztbvczrcss.supabase.co/storage/v1/object/public/artist/avatar-profile.jpeg`}
                           alt={provider.name}
                           className="w-full h-full object-cover"
                         />

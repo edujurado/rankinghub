@@ -1,50 +1,66 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Star, CheckCircle, Flag, Eye, MessageCircle, BarChart3 } from 'lucide-react'
-import { getProvidersByCategory } from '@/lib/database'
-import type { Provider } from '@/lib/database'
+import { useState, useEffect } from "react";
+import {
+  Star,
+  CheckCircle,
+  Flag,
+  Eye,
+  MessageCircle,
+  BarChart3,
+} from "lucide-react";
+import { getProvidersByCategory } from "@/lib/database";
+import type { Provider } from "@/lib/database";
 
 interface RankingListProps {
-  category: string
-  searchQuery?: string
+  category: string;
+  searchQuery?: string;
 }
 
-export default function RankingList({ category, searchQuery }: RankingListProps) {
-  const [sortBy, setSortBy] = useState<'rating' | 'price' | 'popularity'>('rating')
-  const [providers, setProviders] = useState<Provider[]>([])
-  const [loading, setLoading] = useState(true)
+export default function RankingList({
+  category,
+  searchQuery,
+}: RankingListProps) {
+  const [sortBy, setSortBy] = useState<"rating" | "price" | "popularity">(
+    "rating"
+  );
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProviders = async () => {
-      setLoading(true)
-      const data = await getProvidersByCategory(category, searchQuery, sortBy)
-      setProviders(data)
-      setLoading(false)
-    }
-    fetchProviders()
-  }, [category, searchQuery, sortBy])
+      setLoading(true);
+      const data = await getProvidersByCategory(category, searchQuery, sortBy);
+      setProviders(data);
+      setLoading(false);
+    };
+    fetchProviders();
+  }, [category, searchQuery, sortBy]);
 
   const getCountryFlag = (country: string) => {
     const flags: { [key: string]: string } = {
-      'USA': '🇺🇸',
-      'Brazil': '🇧🇷',
-      'Mexico': '🇲🇽',
-      'Canada': '🇨🇦',
-      'UK': '🇬🇧'
-    }
-    return flags[country] || '🌍'
-  }
+      USA: "🇺🇸",
+      Brazil: "🇧🇷",
+      Mexico: "🇲🇽",
+      Canada: "🇨🇦",
+      UK: "🇬🇧",
+    };
+    return flags[country] || "🌍";
+  };
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
         size={16}
-        className={i < Math.floor(rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}
+        className={
+          i < Math.floor(rating)
+            ? "text-yellow-400 fill-current"
+            : "text-gray-300"
+        }
       />
-    ))
-  }
+    ));
+  };
 
   if (loading) {
     return (
@@ -52,7 +68,7 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto"></div>
         <p className="mt-4 text-gray-600">Loading providers...</p>
       </div>
-    )
+    );
   }
 
   if (providers.length === 0) {
@@ -65,7 +81,7 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
           Try adjusting your search criteria or browse other categories.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -73,13 +89,16 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
       {/* Sorting Options */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">
-          Top {providers.length} {category.charAt(0).toUpperCase() + category.slice(1)}
+          Top {providers.length}{" "}
+          {category.charAt(0).toUpperCase() + category.slice(1)}
         </h2>
         <div className="flex items-center space-x-4">
           <span className="text-sm text-gray-600">Sort by:</span>
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'rating' | 'price' | 'popularity')}
+            onChange={(e) =>
+              setSortBy(e.target.value as "rating" | "price" | "popularity")
+            }
             className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           >
             <option value="rating">Rating</option>
@@ -107,7 +126,8 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
               <div className="flex-shrink-0">
                 <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
                   <img
-                    src={provider.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=64`}
+                    // src={provider.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=64`}
+                    src={`https://slzviagizhztbvczrcss.supabase.co/storage/v1/object/public/artist/avatar-profile.jpeg`}
                     alt={provider.name}
                     className="w-full h-full object-cover"
                   />
@@ -121,14 +141,19 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
                     {provider.name}
                   </h3>
                   {provider.verified && (
-                    <CheckCircle size={20} className="text-blue-500 flex-shrink-0" />
+                    <CheckCircle
+                      size={20}
+                      className="text-blue-500 flex-shrink-0"
+                    />
                   )}
                 </div>
-                
+
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
                   <div className="flex items-center space-x-1">
                     <Flag size={16} />
-                    <span>{getCountryFlag(provider.country)} {provider.location}</span>
+                    <span>
+                      {getCountryFlag(provider.country)} {provider.location}
+                    </span>
                   </div>
                   <div className="flex items-center space-x-1">
                     {renderStars(provider.rating)}
@@ -139,14 +164,14 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
 
               {/* Action Buttons */}
               <div className="flex-shrink-0 flex space-x-2">
-                <a 
+                <a
                   href={`/providers/${provider.id}`}
                   className="btn-primary text-sm px-4 py-2"
                 >
                   <Eye size={16} className="inline mr-1" />
                   View Profile
                 </a>
-                <a 
+                <a
                   href={`/providers/${provider.id}#contact`}
                   className="btn-secondary text-sm px-4 py-2"
                 >
@@ -163,5 +188,5 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
         ))}
       </div>
     </div>
-  )
+  );
 }
