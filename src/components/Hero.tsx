@@ -57,19 +57,31 @@ export default function Hero() {
   }
 
   return (
-    <section className="bg-gradient-to-br from-blue-900 to-blue-800 text-white py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="relative bg-gradient-to-br from-blue-900 to-blue-800 text-white py-16 overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" 
+           style={{backgroundImage: "url('https://images.unsplash.com/photo-1571266028243-e68f97f8d49a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')"}}>
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 to-blue-800/90"></div>
+      
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-4">
-            <Star className="text-yellow-400 mr-2" size={32} />
-            <h1 className="text-3xl md:text-5xl font-bold">
-              Official DJ Ranking NYC
+            <Star className="text-yellow-400 mr-2" size={40} />
+            <h1 className="text-4xl md:text-6xl font-bold">
+              Discover the Official Rankings of Verified Service Providers in NYC
             </h1>
           </div>
-          <p className="text-xl md:text-2xl mb-8 text-blue-100">
-            Discover the best event service providers in New York City
+          <p className="text-xl md:text-2xl mb-4 text-blue-100">
+            Real data. Transparent ratings. Trusted professionals.
           </p>
+          <div className="flex items-center justify-center mb-8">
+            <span className="inline-flex items-center bg-green-500/20 backdrop-blur-sm border border-green-400/30 rounded-full px-4 py-2 text-green-300 text-sm font-medium">
+              <span className="mr-2">✅</span>
+              Verified by RankingHub
+            </span>
+          </div>
           
           {/* Search Bar */}
           <div className="max-w-2xl mx-auto mb-8">
@@ -92,10 +104,10 @@ export default function Hero() {
 
           {/* Quick Actions */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/rankings" className="btn-primary text-lg px-8 py-3">
-              View Full Ranking
+            <Link href="/rankings" className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg px-8 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center">
+              ⭐ View Full Ranking
             </Link>
-            <Link href="/contact" className="btn-outline text-lg px-8 py-3">
+            <Link href="/contact" className="bg-white/20 hover:bg-white/30 text-white border border-white/30 text-lg px-8 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center">
               Request a Quote
             </Link>
           </div>
@@ -104,7 +116,7 @@ export default function Hero() {
         {/* Top Rankings Preview */}
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8">
           <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2">Top 3 DJs in NYC</h2>
+            <h2 className="text-2xl md:text-3xl font-bold mb-2">Ranking #1-3 DJs in NYC</h2>
             <p className="text-blue-200">Based on ratings, reviews, and client satisfaction</p>
           </div>
 
@@ -116,13 +128,22 @@ export default function Hero() {
           ) : (
             <div className="space-y-4">
               {topProviders.map((provider, index) => (
-                <div key={provider.id} className="bg-white/20 backdrop-blur-sm rounded-xl p-6 hover:bg-white/30 transition-all duration-200">
+                <div key={provider.id} className={`bg-white/20 backdrop-blur-sm rounded-xl p-6 hover:bg-white/30 transition-all duration-200 ${
+                  index === 0 ? 'ring-2 ring-yellow-400/50 bg-gradient-to-r from-yellow-400/10 to-yellow-500/10' : ''
+                }`}>
                   <div className="flex items-center space-x-6">
                     {/* Position Number */}
                     <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center">
-                        <span className="text-xl font-bold text-black">
-                          {index + 1}
+                      <div className="flex flex-col items-center">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                          index === 0 ? 'bg-yellow-400' : 'bg-gray-300'
+                        }`}>
+                          <span className="text-xl font-bold text-black">
+                            {index + 1}
+                          </span>
+                        </div>
+                        <span className="text-xs text-white mt-1 font-medium">
+                          Position #{index + 1}
                         </span>
                       </div>
                     </div>
@@ -158,6 +179,11 @@ export default function Hero() {
                           {renderStars(provider.rating)}
                           <span className="ml-1 text-white font-medium">{provider.rating}</span>
                         </div>
+                      </div>
+                      <div className="mt-2 text-xs text-blue-300">
+                        <span className="bg-blue-500/20 px-2 py-1 rounded-full">
+                          RH-Score integration coming soon
+                        </span>
                       </div>
                     </div>
 

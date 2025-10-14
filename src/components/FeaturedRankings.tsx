@@ -66,10 +66,10 @@ export default function FeaturedRankings() {
 
   const getCategoryTitle = () => {
     switch (activeCategory) {
-      case 'djs': return 'Top DJs'
-      case 'photographers': return 'Top Photographers'
-      case 'videographers': return 'Top Videographers'
-      default: return 'Top DJs'
+      case 'djs': return 'Ranking DJs'
+      case 'photographers': return 'Ranking Photographers'
+      case 'videographers': return 'Ranking Videographers'
+      default: return 'Ranking DJs'
     }
   }
 
@@ -143,6 +143,18 @@ export default function FeaturedRankings() {
             </div>
           </div>
 
+          {/* Table Header */}
+          <div className="bg-gray-50 px-8 py-4 border-b border-gray-200">
+            <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-600">
+              <div className="col-span-1">Position</div>
+              <div className="col-span-2">Provider</div>
+              <div className="col-span-2">Location</div>
+              <div className="col-span-2">Rating</div>
+              <div className="col-span-2">RH-Score</div>
+              <div className="col-span-3">Actions</div>
+            </div>
+          </div>
+
           <div className="p-8">
             {loading ? (
               <div className="text-center py-12">
@@ -150,71 +162,91 @@ export default function FeaturedRankings() {
                 <p className="mt-4 text-gray-600">Loading rankings...</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-0">
                 {getCurrentProviders().map((provider, index) => (
-                  <div key={provider.id} className="ranking-card hover:shadow-lg transition-all duration-200">
-                    <div className="flex items-center space-x-6">
-                      {/* Position Number */}
-                      <div className="flex-shrink-0">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  <div key={provider.id} className={`grid grid-cols-12 gap-4 items-center py-6 px-8 border-b border-gray-100 hover:bg-gray-50 transition-all duration-200 ${
+                    index === 0 ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200' : 
+                    index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                  }`}>
+                    {/* Position */}
+                    <div className="col-span-1">
+                      <div className="flex flex-col items-center">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                           index === 0 ? 'bg-yellow-400' : 
                           index === 1 ? 'bg-gray-300' : 
                           index === 2 ? 'bg-orange-400' : 'bg-gray-200'
                         }`}>
-                          <span className="text-xl font-bold text-black">
+                          <span className="text-lg font-bold text-black">
                             {index + 1}
                           </span>
                         </div>
+                        <span className="text-xs text-gray-600 mt-1 font-medium">
+                          Position #{index + 1}
+                        </span>
                       </div>
+                    </div>
 
-                      {/* Profile Image */}
-                      <div className="flex-shrink-0">
-                        <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
+                    {/* Provider */}
+                    <div className="col-span-2">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                           <img
-                            src={provider.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=64`}
+                            src={provider.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=48`}
                             alt={provider.name}
                             className="w-full h-full object-cover"
                           />
                         </div>
-                      </div>
-
-                      {/* Provider Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="text-lg font-semibold text-gray-900 truncate">
-                            {provider.name}
-                          </h3>
-                          {provider.verified && (
-                            <CheckCircle size={20} className="text-blue-500 flex-shrink-0" />
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
-                          <div className="flex items-center space-x-1">
-                            <Flag size={16} />
-                            <span>{getCountryFlag(provider.country)} {provider.location}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            {renderStars(provider.rating)}
-                            <span className="ml-1 font-medium">{provider.rating}</span>
+                        <div className="min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <h3 className="text-sm font-semibold text-gray-900 truncate">
+                              {provider.name}
+                            </h3>
+                            {provider.verified && (
+                              <CheckCircle size={16} className="text-blue-500 flex-shrink-0" />
+                            )}
                           </div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Action Buttons */}
-                      <div className="flex-shrink-0 flex space-x-2">
+                    {/* Location */}
+                    <div className="col-span-2">
+                      <div className="flex items-center space-x-1 text-sm text-gray-600">
+                        <Flag size={14} />
+                        <span>{getCountryFlag(provider.country)} {provider.location}</span>
+                      </div>
+                    </div>
+
+                    {/* Rating */}
+                    <div className="col-span-2">
+                      <div className="flex items-center space-x-1">
+                        {renderStars(provider.rating)}
+                        <span className="text-sm font-medium text-gray-900">{provider.rating}</span>
+                      </div>
+                    </div>
+
+                    {/* RH-Score Placeholder */}
+                    <div className="col-span-2">
+                      <span className="inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+                        Powered by RH-Score (Phase 2)
+                      </span>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="col-span-3">
+                      <div className="flex space-x-2">
                         <a 
                           href={`/providers/${provider.id}`}
-                          className="btn-primary text-sm px-4 py-2"
+                          className="bg-yellow-400 hover:bg-yellow-500 text-black text-xs px-3 py-1 rounded font-medium transition-colors duration-200 flex items-center"
                         >
-                          <Eye size={16} className="inline mr-1" />
-                          View Profile
+                          <Eye size={12} className="mr-1" />
+                          View
                         </a>
                         <a 
                           href={`/providers/${provider.id}#contact`}
-                          className="btn-secondary text-sm px-4 py-2"
+                          className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs px-3 py-1 rounded font-medium transition-colors duration-200 flex items-center"
                         >
-                          <MessageCircle size={16} className="inline mr-1" />
+                          <MessageCircle size={12} className="mr-1" />
                           Contact
                         </a>
                       </div>
