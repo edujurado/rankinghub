@@ -42,9 +42,16 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-red-600">Ranking</span>
-            <span className="text-2xl font-bold text-black">Hub</span>
+          <Link href="/" className="flex items-center space-x-2 group">
+            <div className="flex items-center space-x-1">
+              <span className="text-3xl font-bold text-red-600 group-hover:text-red-700 transition-colors">Ranking</span>
+              <span className="text-3xl font-bold text-black group-hover:text-gray-800 transition-colors">Hub</span>
+            </div>
+            <div className="hidden sm:block ml-2">
+              <span className="text-xs font-medium text-gray-600 bg-white/20 px-2 py-1 rounded-full">
+                NYC
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}

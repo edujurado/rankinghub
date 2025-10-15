@@ -83,7 +83,7 @@ export default function FeaturedRankings() {
   }
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 bg-white/80 backdrop-blur-sm relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-12">
@@ -93,10 +93,21 @@ export default function FeaturedRankings() {
               Featured Rankings
             </h2>
           </div>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-4">
             Discover the highest-rated event service providers in New York City, 
             ranked by client satisfaction, ratings, and performance metrics.
           </p>
+          <div className="flex items-center justify-center space-x-4 text-sm">
+            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
+              RH-Score Algorithm
+            </span>
+            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
+              Verified Data
+            </span>
+            <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-medium">
+              Real-time Rankings
+            </span>
+          </div>
         </div>
 
         {/* Category Tabs */}

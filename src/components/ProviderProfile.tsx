@@ -10,6 +10,7 @@ import {
   Instagram,
   MapPin,
   Star as StarIcon,
+  BarChart3,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Header from "./Header";
@@ -215,9 +216,15 @@ export default function ProviderProfile({ providerId }: ProviderProfileProps) {
             <div className="lg:col-span-2 space-y-8">
               {/* Skills Ratings */}
               <div className="card">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  Skills & Ratings
-                </h2>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Skills & Ratings
+                  </h2>
+                  <button className="bg-blue-100 hover:bg-blue-200 text-blue-700 text-sm px-4 py-2 rounded font-medium transition-colors duration-200 flex items-center">
+                    <BarChart3 size={16} className="mr-2" />
+                    Metrics
+                  </button>
+                </div>
                 <div className="space-y-4">
                   {skills.map((skill) => (
                     <div

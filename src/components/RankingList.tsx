@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Star, CheckCircle, Flag, Eye, MessageCircle, BarChart3 } from 'lucide-react'
+import { Star, CheckCircle, Flag, Eye, MessageCircle } from 'lucide-react'
 import { getProvidersByCategory } from '@/lib/database'
 import type { Provider } from '@/lib/database'
 
@@ -95,11 +95,11 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
         <div className="bg-gray-50 px-8 py-4 border-b border-gray-200">
           <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-600">
             <div className="col-span-1">Position</div>
-            <div className="col-span-2">Provider</div>
+            <div className="col-span-3">Provider</div>
             <div className="col-span-2">Location</div>
             <div className="col-span-2">Rating</div>
             <div className="col-span-2">RH-Score</div>
-            <div className="col-span-3">Actions</div>
+            <div className="col-span-2">Actions</div>
           </div>
         </div>
 
@@ -122,14 +122,11 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
                       {index + 1}
                     </span>
                   </div>
-                  <span className="text-xs text-gray-600 mt-1 font-medium">
-                    Position #{index + 1}
-                  </span>
                 </div>
               </div>
 
               {/* Provider */}
-              <div className="col-span-2">
+              <div className="col-span-3">
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                     <img
@@ -175,7 +172,7 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
               </div>
 
               {/* Actions */}
-              <div className="col-span-3">
+              <div className="col-span-2">
                 <div className="flex space-x-2">
                   <a 
                     href={`/providers/${provider.id}`}
@@ -191,10 +188,6 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
                     <MessageCircle size={12} className="mr-1" />
                     Contact
                   </a>
-                  <button className="bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs px-3 py-1 rounded font-medium transition-colors duration-200 flex items-center">
-                    <BarChart3 size={12} className="mr-1" />
-                    Metrics
-                  </button>
                 </div>
               </div>
             </div>

@@ -458,7 +458,7 @@ export default function AdminDashboard() {
 
               <div className="bg-white rounded-lg shadow">
                 <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-medium text-gray-900">Top Providers</h3>
+                  <h3 className="text-lg font-medium text-gray-900">Position Leaders</h3>
                 </div>
                 <div className="divide-y divide-gray-200">
                   {stats?.topProviders.map((provider: any, index: number) => (

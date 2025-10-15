@@ -40,7 +40,7 @@ export default function QuickFilters() {
   ]
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-white/90 backdrop-blur-sm relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Trust Indicators */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 mb-12 text-white">
@@ -107,6 +107,11 @@ export default function QuickFilters() {
                     </div>
                     <div className="text-sm text-gray-500">
                       {category.stats}
+                    </div>
+                    <div className="flex items-center justify-center space-x-1">
+                      <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                        RH-Score Ready
+                      </span>
                     </div>
                   </div>
                   

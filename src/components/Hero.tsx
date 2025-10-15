@@ -58,11 +58,26 @@ export default function Hero() {
 
   return (
     <section className="relative bg-gradient-to-br from-blue-900 to-blue-800 text-white py-16 overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" 
-           style={{backgroundImage: "url('https://images.unsplash.com/photo-1571266028243-e68f97f8d49a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')"}}>
-      </div>
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 to-blue-800/90"></div>
+      {/* DJ Background */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-45"
+        style={{
+          backgroundImage: "url('/dj.jpg')",
+          filter: 'blur(0.5px)'
+        }}
+      ></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/75 to-blue-800/75"></div>
+      
+      {/* Animated pattern overlay */}
+      <div 
+        className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                           radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+                           radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%)`,
+          animation: 'pulse 4s ease-in-out infinite'
+        }}
+      ></div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
@@ -142,9 +157,6 @@ export default function Hero() {
                             {index + 1}
                           </span>
                         </div>
-                        <span className="text-xs text-white mt-1 font-medium">
-                          Position #{index + 1}
-                        </span>
                       </div>
                     </div>
 
@@ -181,9 +193,12 @@ export default function Hero() {
                           <span className="ml-1 text-white font-medium">{provider.rating}</span>
                         </div>
                       </div>
-                      <div className="mt-2 text-xs text-blue-300">
-                        <span className="bg-blue-500/20 px-2 py-1 rounded-full">
-                          RH-Score integration coming soon
+                      <div className="mt-2 flex items-center space-x-2">
+                        <span className="bg-blue-500/20 px-2 py-1 rounded-full text-xs text-blue-300">
+                          RH-Score: Phase 2
+                        </span>
+                        <span className="bg-yellow-400/20 px-2 py-1 rounded-full text-xs text-yellow-300">
+                          Advanced Analytics
                         </span>
                       </div>
                     </div>
