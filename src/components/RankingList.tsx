@@ -130,7 +130,8 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                     <img
-                      src={provider.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=48`}
+                      // src={provider.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=48`}
+                      src={`https://slzviagizhztbvczrcss.supabase.co/storage/v1/object/public/artist/avatar-profile.jpeg`}
                       alt={provider.name}
                       className="w-full h-full object-cover"
                     />

@@ -542,7 +542,7 @@ export default function AdminDashboard() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
-                              <img className="h-10 w-10 rounded-full" src={provider.image} alt={provider.name} />
+                              <img className="h-10 w-10 rounded-full" src={`https://slzviagizhztbvczrcss.supabase.co/storage/v1/object/public/artist/avatar-profile.jpeg`} alt={provider.name} />
                             </div>
                             <div className="ml-4">
                               <div className="text-sm font-medium text-gray-900">{provider.name}</div>
