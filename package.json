@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "import-data": "node scripts/import-data.js",
+    "import-mvp2": "node scripts/bulk-import-mvp2.js",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
