@@ -65,7 +65,7 @@ export async function GET() {
     }
 
     // Transform data to include category info
-    const transformedData = providers?.map(provider => ({
+    const transformedData = providers?.map((provider: any) => ({
       ...provider,
       category: provider.categories?.slug || 'unknown',
       category_name: provider.categories?.name || 'Unknown',

@@ -178,8 +178,8 @@ function trigramSimilarity(str1: string, str2: string): number {
   }
 
   // Generate trigrams
-  const trigrams1 = new Set<string>()
-  const trigrams2 = new Set<string>()
+  const trigrams1:any = new Set<string>()
+  const trigrams2:any = new Set<string>()
 
   for (let i = 0; i <= s1.length - 3; i++) {
     trigrams1.add(s1.substring(i, i + 3))
