@@ -216,8 +216,8 @@ export async function getProviderWithSources(providerId: string): Promise<{
       url: s.source === 'yelp' ? s.yelp_url : s.website,
       price_range: s.price_range
     }))
+    }
   }
-}
 
 // ============================================================================
 // HELPER FUNCTIONS

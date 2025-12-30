@@ -105,7 +105,7 @@ export class SyncService {
           
           if (!googleResult.success) {
             result.errors.push(`Google ingestion failed for ${category}: ${googleResult.errors[0]?.error}`)
-          }
+      }
 
           // Delay between categories
           await this.delay(500)
@@ -194,7 +194,7 @@ export class SyncService {
    */
   async runMatchAndMerge(): Promise<MergeAllResult> {
     return mergeService.matchAndMergeProviders()
-  }
+      }
 
   /**
    * Rebuild rankings only
@@ -330,7 +330,7 @@ export class SyncService {
 
     // Provider stats
     const { data: providers } = await supabase
-      .from('providers')
+        .from('providers')
       .select('verified, api_sync_status')
       .eq('is_active', true)
 
@@ -347,7 +347,7 @@ export class SyncService {
       if (provider.api_sync_status === 'synced') providerStats.synced++
       else if (provider.api_sync_status === 'partial') providerStats.partial++
       else providerStats.pending++
-    }
+      }
 
     return {
       provider_sources: sourceStats,
@@ -394,7 +394,7 @@ export class SyncService {
     return Object.values(grouped)
       .sort((a, b) => new Date(b.fetched_at).getTime() - new Date(a.fetched_at).getTime())
       .slice(0, limit)
-  }
+      }
 
   // ==========================================================================
   // UTILITY METHODS

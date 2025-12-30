@@ -128,7 +128,8 @@ export class IngestionService {
   // ==========================================================================
 
   /**
-   * Fetch providers from Yelp API and store in provider_sources
+   * Fetch providers from Yelp API with pagination support
+   * Yelp API limits: 50 per request, max offset 1000 (so max ~1000 total results)
    * Idempotent - uses upsert by (source, source_provider_id)
    */
   async fetchYelpProviders(
@@ -152,50 +153,73 @@ export class IngestionService {
       }
 
       const searchTerm = categoryToYelpTerm(category)
-      const url = `https://api.yelp.com/v3/businesses/search?term=${encodeURIComponent(searchTerm)}&location=${encodeURIComponent(location)}&limit=${limit}`
-
-      console.log(`[Yelp Ingestion] Fetching: ${url}`)
-
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(`Yelp API error: ${response.status} - ${errorData.error?.description || response.statusText}`)
-      }
-
-      const data = await response.json()
-      console.log("data =>", data);
+      const maxResultsPerPage = 50 // Yelp API maximum per request
+      const maxTotalResults = Math.min(limit, 1000) // Yelp API max is ~1000 total
       
-      const businesses: YelpBusiness[] = data.businesses || []
-      result.total = businesses.length
+      let offset = 0
+      let hasMore = true
+      let totalFetched = 0
 
-      console.log(`[Yelp Ingestion] Fetched ${businesses.length} businesses for ${category} in ${location}`)
+      while (hasMore && totalFetched < maxTotalResults) {
+        const pageLimit = Math.min(maxResultsPerPage, maxTotalResults - totalFetched)
+        const url = `https://api.yelp.com/v3/businesses/search?term=${encodeURIComponent(searchTerm)}&location=${encodeURIComponent(location)}&limit=${pageLimit}&offset=${offset}`
 
-      // Process each business
-      for (const business of businesses) {
-        try {
-          const sourceRecord = this.transformYelpToSource(business, category)
-          const upsertResult = await this.upsertProviderSource(sourceRecord)
+        console.log(`[Yelp Ingestion] Fetching page: offset=${offset}, limit=${pageLimit} (total fetched: ${totalFetched}/${maxTotalResults})`)
 
-          if (upsertResult.inserted) {
-            result.inserted++
-          } else if (upsertResult.updated) {
-            result.updated++
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
           }
-        } catch (error) {
-          result.errors.push({
-            source_provider_id: business.id,
-            error: error instanceof Error ? error.message : 'Unknown error'
-          })
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(`Yelp API error: ${response.status} - ${errorData.error?.description || response.statusText}`)
+        }
+
+        const data = await response.json()
+        const businesses: YelpBusiness[] = data.businesses || []
+        
+        if (businesses.length === 0) {
+          hasMore = false
+          break
+        }
+
+        console.log(`[Yelp Ingestion] Fetched ${businesses.length} businesses (offset: ${offset})`)
+
+        // Process each business
+        for (const business of businesses) {
+          try {
+            const sourceRecord = this.transformYelpToSource(business, category)
+            const upsertResult = await this.upsertProviderSource(sourceRecord)
+
+            if (upsertResult.inserted) {
+              result.inserted++
+            } else if (upsertResult.updated) {
+              result.updated++
+            }
+            totalFetched++
+          } catch (error) {
+            result.errors.push({
+              source_provider_id: business.id,
+              error: error instanceof Error ? error.message : 'Unknown error'
+            })
+          }
+        }
+
+        // Check if we should continue paginating
+        if (businesses.length < pageLimit || totalFetched >= maxTotalResults) {
+          hasMore = false
+        } else {
+          offset += pageLimit
+          // Rate limiting: small delay between requests
+          await new Promise(resolve => setTimeout(resolve, 200))
         }
       }
 
-      console.log(`[Yelp Ingestion] Completed: ${result.inserted} inserted, ${result.updated} updated, ${result.errors.length} errors`)
+      result.total = totalFetched
+      console.log(`[Yelp Ingestion] Completed: ${result.inserted} inserted, ${result.updated} updated, ${result.errors.length} errors, total: ${totalFetched}`)
 
     } catch (error) {
       console.error('[Yelp Ingestion] Fatal error:', error)
@@ -271,7 +295,8 @@ export class IngestionService {
   // ==========================================================================
 
   /**
-   * Fetch providers from Google Places API and store in provider_sources
+   * Fetch providers from Google Places API with pagination support
+   * Google Places API limits: 20 per request, uses pagetoken for pagination
    * Idempotent - uses upsert by (source, source_provider_id)
    */
   async fetchGoogleProviders(
@@ -295,59 +320,97 @@ export class IngestionService {
       }
 
       const searchTerm = categoryToGoogleTerm(category)
-      
-      // Text search to find places
-      const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchTerm + ' ' + location)}&key=${apiKey}`
+      let nextPageToken: string | null = null
+      let totalFetched = 0
+      let hasMore = true
 
-      console.log(`[Google Ingestion] Fetching: ${searchUrl}`)
+      while (hasMore && totalFetched < limit) {
+        // Build URL with pagetoken if available
+        let searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchTerm + ' ' + location)}&key=${apiKey}`
+        
+        if (nextPageToken) {
+          // Wait a few seconds before using pagetoken (Google requirement)
+          console.log(`[Google Ingestion] Waiting 2 seconds before fetching next page...`)
+          await new Promise(resolve => setTimeout(resolve, 2000))
+          searchUrl += `&pagetoken=${encodeURIComponent(nextPageToken)}`
+        }
 
-      const searchResponse = await fetch(searchUrl)
-      if (!searchResponse.ok) {
-        throw new Error(`Google Places API error: ${searchResponse.statusText}`)
-      }
+        console.log(`[Google Ingestion] Fetching page: ${nextPageToken ? 'pagetoken=' + nextPageToken.substring(0, 20) + '...' : 'first page'} (total fetched: ${totalFetched}/${limit})`)
 
-      const searchData = await searchResponse.json()
-      // console.log("search data =>", searchData);
-      
+        const searchResponse = await fetch(searchUrl)
+        if (!searchResponse.ok) {
+          throw new Error(`Google Places API error: ${searchResponse.statusText}`)
+        }
 
-      if (searchData.status !== 'OK' && searchData.status !== 'ZERO_RESULTS') {
-        throw new Error(`Google Places API error: ${searchData.status} - ${searchData.error_message || ''}`)
-      }
+        const searchData = await searchResponse.json()
 
-      const places = (searchData.results || []).slice(0, limit)
-      result.total = places.length
+        if (searchData.status !== 'OK' && searchData.status !== 'ZERO_RESULTS') {
+          // If pagetoken error, try to continue with first page again
+          if (searchData.status === 'INVALID_REQUEST' && nextPageToken) {
+            console.log(`[Google Ingestion] Pagetoken expired or invalid, stopping pagination`)
+            hasMore = false
+            break
+          }
+          throw new Error(`Google Places API error: ${searchData.status} - ${searchData.error_message || ''}`)
+        }
 
-      console.log(`[Google Ingestion] Fetched ${places.length} places for ${category} in ${location}`)
+        const places = searchData.results || []
+        
+        if (places.length === 0) {
+          hasMore = false
+          break
+        }
 
-      // Process each place - get detailed info
-      for (const place of places) {
-        try {
-          // Get detailed place information
-          const details = await this.getGooglePlaceDetails(place.place_id, apiKey)
-          
-          if (details) {
-            const sourceRecord = this.transformGoogleToSource(details, category, apiKey)
-            const upsertResult = await this.upsertProviderSource(sourceRecord)
+        console.log(`[Google Ingestion] Fetched ${places.length} places from search results`)
 
-            if (upsertResult.inserted) {
-              result.inserted++
-            } else if (upsertResult.updated) {
-              result.updated++
-            }
+        // Process each place - get detailed info
+        for (const place of places) {
+          if (totalFetched >= limit) {
+            hasMore = false
+            break
           }
 
-          // Rate limiting - small delay between requests
-          await new Promise(resolve => setTimeout(resolve, 100))
+          try {
+            // Get detailed place information
+            const details = await this.getGooglePlaceDetails(place.place_id, apiKey)
+            
+            if (details) {
+              const sourceRecord = this.transformGoogleToSource(details, category, apiKey)
+              const upsertResult = await this.upsertProviderSource(sourceRecord)
 
-        } catch (error) {
-          result.errors.push({
-            source_provider_id: place.place_id,
-            error: error instanceof Error ? error.message : 'Unknown error'
-          })
+              if (upsertResult.inserted) {
+                result.inserted++
+              } else if (upsertResult.updated) {
+                result.updated++
+              }
+              totalFetched++
+            }
+
+            // Rate limiting - small delay between detail requests
+            await new Promise(resolve => setTimeout(resolve, 100))
+
+          } catch (error) {
+            result.errors.push({
+              source_provider_id: place.place_id,
+              error: error instanceof Error ? error.message : 'Unknown error'
+            })
+          }
+        }
+
+        // Check for next page token
+        nextPageToken = searchData.next_page_token || null
+        if (!nextPageToken || totalFetched >= limit) {
+          hasMore = false
+        }
+
+        // Rate limiting between search pages
+        if (hasMore) {
+          await new Promise(resolve => setTimeout(resolve, 500))
         }
       }
 
-      console.log(`[Google Ingestion] Completed: ${result.inserted} inserted, ${result.updated} updated, ${result.errors.length} errors`)
+      result.total = totalFetched
+      console.log(`[Google Ingestion] Completed: ${result.inserted} inserted, ${result.updated} updated, ${result.errors.length} errors, total: ${totalFetched}`)
 
     } catch (error) {
       console.error('[Google Ingestion] Fatal error:', error)

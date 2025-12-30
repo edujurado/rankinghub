@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getProvidersByCategory } from '@/lib/database'
 import { trackCategoryFilter } from '@/lib/gtag'
 
 interface CategoryTabsProps {
@@ -15,6 +14,11 @@ interface Category {
   count: number
 }
 
+interface CountsResponse {
+  success: boolean
+  counts: Record<string, number>
+}
+
 export default function CategoryTabs({ activeCategory, onCategoryChange }: CategoryTabsProps) {
   const [categories, setCategories] = useState<Category[]>([
     { id: 'djs', name: 'DJs', count: 0 },
@@ -26,17 +30,16 @@ export default function CategoryTabs({ activeCategory, onCategoryChange }: Categ
   useEffect(() => {
     const fetchCategoryCounts = async () => {
       try {
-        const [djs, photographers, videographers] = await Promise.all([
-          getProvidersByCategory('djs'),
-          getProvidersByCategory('photographers'),
-          getProvidersByCategory('videographers')
-        ])
+        const response = await fetch('/api/providers/counts')
+        const result: CountsResponse = await response.json()
 
-        setCategories([
-          { id: 'djs', name: 'DJs', count: djs.length },
-          { id: 'photographers', name: 'Photographers', count: photographers.length },
-          { id: 'videographers', name: 'Videographers', count: videographers.length }
-        ])
+        if (result.success) {
+          setCategories([
+            { id: 'djs', name: 'DJs', count: result.counts['djs'] || 0 },
+            { id: 'photographers', name: 'Photographers', count: result.counts['photographers'] || 0 },
+            { id: 'videographers', name: 'Videographers', count: result.counts['videographers'] || 0 }
+          ])
+        }
       } catch (error) {
         console.error('Error fetching category counts:', error)
       } finally {

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Star, CheckCircle, Flag, Eye, MessageCircle } from 'lucide-react'
-import { getProvidersByCategory } from '@/lib/database'
+import { useState, useEffect, useRef } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { Star, CheckCircle, Flag, Eye, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Provider } from '@/lib/database'
 
 interface RankingListProps {
@@ -10,20 +10,93 @@ interface RankingListProps {
   searchQuery?: string
 }
 
+interface PaginatedResponse {
+  success: boolean
+  data: Provider[]
+  pagination: {
+    page: number
+    pageSize: number
+    total: number
+    totalPages: number
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+  }
+}
+
 export default function RankingList({ category, searchQuery }: RankingListProps) {
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const [sortBy, setSortBy] = useState<'rating' | 'price' | 'popularity'>('rating')
   const [providers, setProviders] = useState<Provider[]>([])
   const [loading, setLoading] = useState(true)
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 20,
+    total: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false
+  })
+  // Get initial page from URL params
+  const currentPage = parseInt(searchParams.get('page') || '1', 10)
 
   useEffect(() => {
     const fetchProviders = async () => {
       setLoading(true)
-      const data = await getProvidersByCategory(category, searchQuery, sortBy)
-      setProviders(data)
-      setLoading(false)
+      try {
+        const params = new URLSearchParams({
+          category,
+          sortBy,
+          page: currentPage.toString(),
+          pageSize: '20'
+        })
+        
+        if (searchQuery) {
+          params.append('search', searchQuery)
+        }
+
+        const response = await fetch(`/api/providers?${params.toString()}`)
+        const result: PaginatedResponse = await response.json()
+
+        if (result.success) {
+          setProviders(result.data)
+          setPagination(result.pagination)
+          
+          // If we got no results and we're not on page 1, reset to page 1
+          if (result.data.length === 0 && currentPage > 1) {
+            const urlParams = new URLSearchParams(searchParams.toString())
+            urlParams.set('page', '1')
+            router.replace(`/rankings?${urlParams.toString()}`, { scroll: false })
+          }
+        } else {
+          console.error('Error fetching providers:', result)
+          setProviders([])
+        }
+      } catch (error) {
+        console.error('Error fetching providers:', error)
+        setProviders([])
+      } finally {
+        setLoading(false)
+      }
     }
     fetchProviders()
-  }, [category, searchQuery, sortBy])
+  }, [category, searchQuery, sortBy, currentPage, searchParams, router])
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('page', newPage.toString())
+    router.push(`/rankings?${params.toString()}`)
+    // Scroll to top of rankings section
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleSortChange = (newSortBy: 'rating' | 'price' | 'popularity') => {
+    setSortBy(newSortBy)
+    // Reset to first page when sorting changes
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('page', '1')
+    router.push(`/rankings?${params.toString()}`)
+  }
 
   const getCountryFlag = (country: string) => {
     const flags: { [key: string]: string } = {
@@ -73,13 +146,13 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
       {/* Sorting Options */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">
-          Ranking {providers.length} {category.charAt(0).toUpperCase() + category.slice(1)}
+          Ranking {pagination.total} {category.charAt(0).toUpperCase() + category.slice(1)}
         </h2>
         <div className="flex items-center space-x-4">
           <span className="text-sm text-gray-600">Sort by:</span>
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'rating' | 'price' | 'popularity')}
+            onChange={(e) => handleSortChange(e.target.value as 'rating' | 'price' | 'popularity')}
             className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           >
             <option value="rating">Rating</option>
@@ -105,21 +178,23 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
 
         {/* Rankings List */}
         <div className="space-y-0">
-          {providers.map((provider, index) => (
+          {providers.map((provider, index) => {
+            const position = (pagination.page - 1) * pagination.pageSize + index + 1
+            return (
             <div key={provider.id} className={`grid grid-cols-12 gap-4 items-center py-6 px-8 border-b border-gray-100 hover:bg-gray-50 transition-all duration-200 ${
-              index === 0 ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200' : 
+              index === 0 && pagination.page === 1 ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200' : 
               index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
             }`}>
               {/* Position */}
               <div className="col-span-1">
                 <div className="flex flex-col items-center">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    index === 0 ? 'bg-yellow-400' : 
-                    index === 1 ? 'bg-gray-300' : 
-                    index === 2 ? 'bg-orange-400' : 'bg-gray-200'
+                    index === 0 && pagination.page === 1 ? 'bg-yellow-400' : 
+                    position === 2 && pagination.page === 1 ? 'bg-gray-300' : 
+                    position === 3 && pagination.page === 1 ? 'bg-orange-400' : 'bg-gray-200'
                   }`}>
                     <span className="text-lg font-bold text-black">
-                      {index + 1}
+                      {position}
                     </span>
                   </div>
                 </div>
@@ -192,9 +267,76 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
                 </div>
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       </div>
+
+      {/* Pagination Controls */}
+      {pagination.totalPages > 1 && (
+        <div className="flex justify-between items-center mt-8 pb-4">
+          <div className="text-sm text-gray-600">
+            Showing {(pagination.page - 1) * pagination.pageSize + 1} to {Math.min(pagination.page * pagination.pageSize, pagination.total)} of {pagination.total} providers
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => handlePageChange(pagination.page - 1)}
+              disabled={!pagination.hasPreviousPage}
+              className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
+                pagination.hasPreviousPage
+                  ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  : 'bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              <ChevronLeft size={16} className="mr-1" />
+              Previous
+            </button>
+            
+            {/* Page Numbers */}
+            <div className="flex items-center space-x-1">
+              {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                let pageNum: number
+                if (pagination.totalPages <= 5) {
+                  pageNum = i + 1
+                } else if (pagination.page <= 3) {
+                  pageNum = i + 1
+                } else if (pagination.page >= pagination.totalPages - 2) {
+                  pageNum = pagination.totalPages - 4 + i
+                } else {
+                  pageNum = pagination.page - 2 + i
+                }
+                
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                      pageNum === pagination.page
+                        ? 'bg-yellow-400 text-black'
+                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              })}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(pagination.page + 1)}
+              disabled={!pagination.hasNextPage}
+              className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
+                pagination.hasNextPage
+                  ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  : 'bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              Next
+              <ChevronRight size={16} className="ml-1" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

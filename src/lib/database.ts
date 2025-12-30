@@ -252,6 +252,208 @@ export async function getProvidersByCategory(
   })) || []
 }
 
+/**
+ * Get providers by category with pagination
+ * Returns providers along with pagination metadata
+ */
+export async function getProvidersByCategoryPaginated(
+  categorySlug: string,
+  searchQuery?: string,
+  sortBy: 'rating' | 'price' | 'popularity' = 'rating',
+  page: number = 1,
+  pageSize: number = 20
+): Promise<{
+  providers: Provider[]
+  total: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+}> {
+  // First get the category_id from the slug
+  const { data: categoryData } = await supabase
+    .from('categories')
+    .select('id')
+    .eq('slug', categorySlug)
+    .single()
+
+  if (!categoryData) {
+    console.error('Category not found:', categorySlug)
+    return {
+      providers: [],
+      total: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false
+    }
+  }
+
+  // Build the base query for counting total records
+  let countQuery = supabase
+    .from('providers')
+    .select('*', { count: 'exact', head: true })
+    .eq('category_id', categoryData.id)
+    .eq('is_active', true)
+
+  if (searchQuery) {
+    countQuery = countQuery.or(`name.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%`)
+  }
+
+  const { count, error: countError } = await countQuery
+
+  if (countError) {
+    console.error('Error counting providers:', countError)
+    return {
+      providers: [],
+      total: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false
+    }
+  }
+
+  const total = count || 0
+  const totalPages = Math.ceil(total / pageSize)
+  const offset = (page - 1) * pageSize
+
+  // Build the query for fetching providers
+  let query = supabase
+    .from('providers')
+    .select(`
+      *,
+      categories (
+        name,
+        slug
+      ),
+      skills (
+        punctuality,
+        professionalism,
+        reliability,
+        price,
+        client_satisfaction
+      )
+    `)
+    .eq('category_id', categoryData.id)
+    .eq('is_active', true)
+
+  if (searchQuery) {
+    query = query.or(`name.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%`)
+  }
+
+  // Apply sorting
+  switch (sortBy) {
+    case 'rating':
+      query = query.order('rating', { ascending: false })
+      break
+    case 'price':
+      query = query.order('position', { ascending: true }) // Note: price sorting via skills requires a different approach
+      break
+    case 'popularity':
+      query = query.order('view_count', { ascending: false })
+      break
+    default:
+      query = query.order('position', { ascending: true })
+  }
+
+  // Apply pagination
+  query = query.range(offset, offset + pageSize - 1)
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('Error fetching providers:', error)
+    return {
+      providers: [],
+      total: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false
+    }
+  }
+
+  const providers = data?.map(provider => ({
+    ...provider,
+    category_name: provider.categories?.name,
+    category_slug: provider.categories?.slug,
+    punctuality: provider.skills?.[0]?.punctuality,
+    professionalism: provider.skills?.[0]?.professionalism,
+    reliability: provider.skills?.[0]?.reliability,
+    price: provider.skills?.[0]?.price,
+    client_satisfaction: provider.skills?.[0]?.client_satisfaction
+  })) || []
+
+  return {
+    providers,
+    total,
+    totalPages,
+    hasNextPage: page < totalPages,
+    hasPreviousPage: page > 1
+  }
+}
+
+/**
+ * Get provider count by category slug
+ * Returns just the count without fetching all records
+ */
+export async function getProviderCountByCategory(categorySlug: string): Promise<number> {
+  // First get the category_id from the slug
+  const { data: categoryData } = await supabase
+    .from('categories')
+    .select('id')
+    .eq('slug', categorySlug)
+    .single()
+
+  if (!categoryData) {
+    console.error('Category not found:', categorySlug)
+    return 0
+  }
+
+  const { count, error } = await supabase
+    .from('providers')
+    .select('*', { count: 'exact', head: true })
+    .eq('category_id', categoryData.id)
+    .eq('is_active', true)
+
+  if (error) {
+    console.error('Error counting providers:', error)
+    return 0
+  }
+
+  return count || 0
+}
+
+/**
+ * Get provider counts for all categories
+ * Returns a map of category slug to count
+ */
+export async function getProviderCountsByCategory(): Promise<Record<string, number>> {
+  // Get all active categories
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('id, slug')
+    .eq('is_active', true)
+
+  if (!categories || categories.length === 0) {
+    return {}
+  }
+
+  // Get counts for each category
+  const counts: Record<string, number> = {}
+  
+  for (const category of categories) {
+    const { count, error } = await supabase
+      .from('providers')
+      .select('*', { count: 'exact', head: true })
+      .eq('category_id', category.id)
+      .eq('is_active', true)
+
+    if (!error) {
+      counts[category.slug] = count || 0
+    }
+  }
+
+  return counts
+}
+
 export async function getProviderById(id: string): Promise<Provider | null> {
   const { data, error } = await supabase
     .from('providers')
