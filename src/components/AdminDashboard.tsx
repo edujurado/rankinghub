@@ -20,7 +20,9 @@ import {
   Download,
   Check,
   X,
-  AlertCircle
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import { 
   getDashboardStats, 
@@ -58,6 +60,16 @@ export default function AdminDashboard() {
   const [adminProfile, setAdminProfile] = useState<{ id: string; email: string; name?: string; phone?: string } | null>(null)
   const [showProfileDropdown, setShowProfileDropdown] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize] = useState(20)
+  const [pagination, setPagination] = useState({
+    total: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false
+  })
+  const [providersLoading, setProvidersLoading] = useState(false)
 
   const emptyProviderForm = {
     name: '',
@@ -111,18 +123,21 @@ export default function AdminDashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true)
-      const [statsData, providersData, contactsData] = await Promise.all([
+      const [statsData, contactsData] = await Promise.all([
         getDashboardStats(),
-        getAllProviders(),
         getAllContacts()
       ])
       
       setStats(statsData)
-      setProviders(providersData)
       setContacts(contactsData)
       if (activeTab === 'profile') {
         const profile = await getAdminProfile()
         setAdminProfile(profile)
+      }
+      
+      // Load providers if on providers tab
+      if (activeTab === 'providers') {
+        await loadProviders()
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error)
@@ -131,6 +146,59 @@ export default function AdminDashboard() {
       setLoading(false)
     }
   }
+
+  const loadProviders = async () => {
+    try {
+      setProvidersLoading(true)
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        pageSize: pageSize.toString()
+      })
+      
+      if (searchQuery) {
+        params.append('search', searchQuery)
+      }
+
+      const response = await fetch(`/api/admin/providers?${params.toString()}`)
+      const result = await response.json()
+
+      if (result.success) {
+        setProviders(result.data)
+        setPagination(result.pagination)
+      } else {
+        showToast('Failed to load providers', 'error')
+      }
+    } catch (error) {
+      console.error('Error loading providers:', error)
+      showToast('Failed to load providers', 'error')
+    } finally {
+      setProvidersLoading(false)
+    }
+  }
+
+  // Load providers when tab changes to providers or page changes
+  useEffect(() => {
+    if (activeTab === 'providers') {
+      loadProviders()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, currentPage])
+
+  // Debounced search - reload providers when search query changes
+  useEffect(() => {
+    if (activeTab === 'providers') {
+      const timer = setTimeout(() => {
+        if (currentPage === 1) {
+          loadProviders()
+        } else {
+          setCurrentPage(1) // Reset to page 1 on search
+        }
+      }, 500) // 500ms debounce
+
+      return () => clearTimeout(timer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery])
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type })
@@ -141,7 +209,8 @@ export default function AdminDashboard() {
     const result = await deleteProvider(id)
     if (result.success) {
       showToast('Provider deleted successfully', 'success')
-      loadDashboardData()
+      loadProviders() // Reload current page
+      loadDashboardData() // Reload stats
     } else {
       showToast(result.error || 'Failed to delete provider', 'error')
     }
@@ -196,11 +265,10 @@ export default function AdminDashboard() {
     }
   }
 
-  const filteredProviders = providers.filter(provider =>
-    provider.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    provider.bio.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    provider.location.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const filteredContacts = contacts.filter(contact =>
     contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -246,6 +314,7 @@ export default function AdminDashboard() {
       showToast('Provider added', 'success')
       setShowAddProvider(false)
       setProviderForm(emptyProviderForm)
+      loadProviders()
       loadDashboardData()
     } else {
       showToast(res.error || 'Failed to add provider', 'error')
@@ -259,6 +328,7 @@ export default function AdminDashboard() {
       showToast('Provider updated', 'success')
       setShowEditProvider(false)
       setEditingProvider(null)
+      loadProviders()
       loadDashboardData()
     } else {
       showToast(res.error || 'Failed to update provider', 'error')
@@ -528,70 +598,225 @@ export default function AdminDashboard() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Views</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Website</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Views</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacts</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredProviders.map((provider) => (
-                      <tr key={provider.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10">
-                              <img className="h-10 w-10 rounded-full" src={`https://slzviagizhztbvczrcss.supabase.co/storage/v1/object/public/artist/avatar-profile.jpeg`} alt={provider.name} />
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{provider.name}</div>
-                              <div className="text-sm text-gray-500">{provider.location}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {provider.category}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <Star size={16} className="text-yellow-400 fill-current" />
-                            <span className="ml-1 text-sm text-gray-900">{provider.rating}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {provider.contact?.email ? 'Contacted' : 'No contact'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            provider.verified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {provider.verified ? 'Verified' : 'Pending'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => openEditProvider(provider)}
-                              className="text-indigo-600 hover:text-indigo-900"
-                            >
-                              <Edit size={16} />
-                            </button>
-                            <button
-                              onClick={() => setDeleteProviderId(provider.id)}
-                              className="text-red-600 hover:text-red-900"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                    {providersLoading ? (
+                      <tr>
+                        <td colSpan={13} className="px-6 py-8 text-center">
+                          <div className="flex justify-center items-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
+                            <span className="ml-3 text-gray-600">Loading providers...</span>
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    ) : providers.length === 0 ? (
+                      <tr>
+                        <td colSpan={13} className="px-6 py-8 text-center text-gray-500">
+                          No providers found
+                        </td>
+                      </tr>
+                    ) : (
+                      providers.map((provider: any) => (
+                        <tr key={provider.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10">
+                                <img className="h-10 w-10 rounded-full object-cover" src={provider.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=48`} alt={provider.name} />
+                              </div>
+                              <div className="ml-3">
+                                <div className="text-sm font-medium text-gray-900">{provider.name}</div>
+                                <div className="text-sm text-gray-500">{provider.location}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 capitalize">
+                              {provider.category}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                            #{provider.position}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <Star size={16} className="text-yellow-400 fill-current" />
+                              <span className="ml-1 text-sm text-gray-900">{provider.rating?.toFixed(1) || '0.0'}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {provider.contact?.email ? (
+                              <span className="text-green-600">✓ Has Email</span>
+                            ) : (
+                              <span className="text-gray-400">No email</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <div className="max-w-xs truncate" title={provider.contact?.email || ''}>
+                              {provider.contact?.email || '-'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {provider.contact?.phone || '-'}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {provider.contact?.website ? (
+                              <a href={provider.contact.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate max-w-xs block">
+                                {provider.contact.website}
+                              </a>
+                            ) : (
+                              '-'
+                            )}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {provider.view_count || 0}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {provider.contact_count || 0}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {provider.created_at ? new Date(provider.created_at).toLocaleDateString() : '-'}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              provider.verified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {provider.verified ? 'Verified' : 'Pending'}
+                            </span>
+                            {provider.is_active === false && (
+                              <span className="ml-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                Inactive
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => openEditProvider(provider)}
+                                className="text-indigo-600 hover:text-indigo-900"
+                                title="Edit"
+                              >
+                                <Edit size={16} />
+                              </button>
+                              <button
+                                onClick={() => setDeleteProviderId(provider.id)}
+                                className="text-red-600 hover:text-red-900"
+                                title="Delete"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {!providersLoading && pagination.totalPages > 1 && (
+                <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                  <div className="flex-1 flex justify-between sm:hidden">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={!pagination.hasPreviousPage}
+                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                        pagination.hasPreviousPage
+                          ? 'bg-white text-gray-700 hover:bg-gray-50'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={!pagination.hasNextPage}
+                      className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                        pagination.hasNextPage
+                          ? 'bg-white text-gray-700 hover:bg-gray-50'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                  <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm text-gray-700">
+                        Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{' '}
+                        <span className="font-medium">{Math.min(currentPage * pageSize, pagination.total)}</span> of{' '}
+                        <span className="font-medium">{pagination.total}</span> providers
+                      </p>
+                    </div>
+                    <div>
+                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <button
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={!pagination.hasPreviousPage}
+                          className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                            pagination.hasPreviousPage
+                              ? 'text-gray-500 hover:bg-gray-50'
+                              : 'text-gray-300 cursor-not-allowed'
+                          }`}
+                        >
+                          <ChevronLeft size={20} />
+                        </button>
+                        {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                          let pageNum: number
+                          if (pagination.totalPages <= 5) {
+                            pageNum = i + 1
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1
+                          } else if (currentPage >= pagination.totalPages - 2) {
+                            pageNum = pagination.totalPages - 4 + i
+                          } else {
+                            pageNum = currentPage - 2 + i
+                          }
+                          
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => handlePageChange(pageNum)}
+                              className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                pageNum === currentPage
+                                  ? 'z-10 bg-yellow-50 border-yellow-500 text-yellow-600'
+                                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          )
+                        })}
+                        <button
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={!pagination.hasNextPage}
+                          className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                            pagination.hasNextPage
+                              ? 'text-gray-500 hover:bg-gray-50'
+                              : 'text-gray-300 cursor-not-allowed'
+                          }`}
+                        >
+                          <ChevronRight size={20} />
+                        </button>
+                      </nav>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

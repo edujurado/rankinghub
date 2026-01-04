@@ -154,6 +154,131 @@ export async function getAllProviders(): Promise<Provider[]> {
   })) || []
 }
 
+/**
+ * Get paginated providers for admin
+ */
+export async function getProvidersPaginated(
+  page: number = 1,
+  pageSize: number = 20,
+  searchQuery?: string,
+  sortBy: string = 'created_at',
+  sortOrder: 'asc' | 'desc' = 'desc'
+): Promise<{
+  providers: Provider[]
+  total: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+}> {
+  // Build count query
+  let countQuery = supabase
+    .from('providers')
+    .select('*', { count: 'exact', head: true })
+
+  if (searchQuery) {
+    countQuery = countQuery.or(`name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%`)
+  }
+
+  const { count, error: countError } = await countQuery
+
+  if (countError) {
+    console.error('Error counting providers:', countError)
+    return {
+      providers: [],
+      total: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false
+    }
+  }
+
+  const total = count || 0
+  const totalPages = Math.ceil(total / pageSize)
+  const offset = (page - 1) * pageSize
+
+  // Build data query
+  let query = supabase
+    .from('providers')
+    .select(`
+      *,
+      categories:categories ( name, slug ),
+      skills (
+        punctuality,
+        professionalism,
+        reliability,
+        price,
+        client_satisfaction
+      )
+    `)
+
+  if (searchQuery) {
+    query = query.or(`name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%`)
+  }
+
+  // Apply sorting
+  query = query.order(sortBy, { ascending: sortOrder === 'asc' })
+
+  // Apply pagination
+  query = query.range(offset, offset + pageSize - 1)
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('Error fetching providers:', error)
+    return {
+      providers: [],
+      total: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false
+    }
+  }
+
+  const providers = data?.map((provider: any) => ({
+    id: provider.id,
+    name: provider.name,
+    category: (provider.categories?.slug || 'djs') as 'djs' | 'photographers' | 'videographers',
+    position: provider.position,
+    rating: provider.rating,
+    verified: provider.verified,
+    country: provider.country,
+    location: provider.location,
+    city: provider.city,
+    state: provider.state,
+    image: provider.image_url,
+    skills: {
+      punctuality: provider.skills?.[0]?.punctuality || 0,
+      professionalism: provider.skills?.[0]?.professionalism || 0,
+      reliability: provider.skills?.[0]?.reliability || 0,
+      price: provider.skills?.[0]?.price || 0,
+      clientSatisfaction: provider.skills?.[0]?.client_satisfaction || 0
+    },
+    bio: provider.bio,
+    portfolio: [],
+    contact: {
+      email: provider.email,
+      phone: provider.phone,
+      website: provider.website,
+      instagram: provider.instagram
+    },
+    // Additional fields for admin view
+    view_count: provider.view_count || 0,
+    contact_count: provider.contact_count || 0,
+    created_at: provider.created_at,
+    updated_at: provider.updated_at,
+    is_active: provider.is_active,
+    is_claimed: provider.is_claimed
+  })) || []
+
+  return {
+    providers,
+    total,
+    totalPages,
+    hasNextPage: page < totalPages,
+    hasPreviousPage: page > 1
+  }
+}
+
 export async function createProvider(providerData: {
   name: string
   category?: 'djs' | 'photographers' | 'videographers'
