@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Star, CheckCircle, Flag, Eye, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Star, CheckCircle, Flag, Eye, MessageCircle, ChevronLeft, ChevronRight, Phone, Mail, Globe, Instagram, DollarSign, Calendar, TrendingUp, Users } from 'lucide-react'
 import type { Provider } from '@/lib/database'
+import Link from 'next/link'
 
 interface RankingListProps {
   category: string
@@ -164,111 +165,266 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
 
       {/* Rankings Table */}
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-        {/* Table Header */}
-        <div className="bg-gray-50 px-8 py-4 border-b border-gray-200">
-          <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-600">
-            <div className="col-span-1">Position</div>
-            <div className="col-span-3">Provider</div>
-            <div className="col-span-2">Location</div>
-            <div className="col-span-2">Rating</div>
-            <div className="col-span-2">RH-Score</div>
-            <div className="col-span-2">Actions</div>
-          </div>
-        </div>
+        {/* Scrollable Container */}
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[1400px]">
+            {/* Table Header */}
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-16">#</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-48">Provider</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-40">Location</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-24">Rating</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-32">Phone</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-48">Email</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-28">Website</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-32">Instagram</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-24">Price</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-28">Experience</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-20">Views</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-24">Contacts</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-40">Skills</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-28">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-40">Actions</th>
+              </tr>
+            </thead>
 
-        {/* Rankings List */}
-        <div className="space-y-0">
-          {providers.map((provider, index) => {
-            const position = (pagination.page - 1) * pagination.pageSize + index + 1
-            return (
-            <div key={provider.id} className={`grid grid-cols-12 gap-4 items-center py-6 px-8 border-b border-gray-100 hover:bg-gray-50 transition-all duration-200 ${
-              index === 0 && pagination.page === 1 ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200' : 
-              index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-            }`}>
-              {/* Position */}
-              <div className="col-span-1">
-                <div className="flex flex-col items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    index === 0 && pagination.page === 1 ? 'bg-yellow-400' : 
-                    position === 2 && pagination.page === 1 ? 'bg-gray-300' : 
-                    position === 3 && pagination.page === 1 ? 'bg-orange-400' : 'bg-gray-200'
-                  }`}>
-                    <span className="text-lg font-bold text-black">
-                      {position}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Provider */}
-              <div className="col-span-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                    <img
-                      src={provider.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=48`}
-                      // src={`https://slzviagizhztbvczrcss.supabase.co/storage/v1/object/public/artist/avatar-profile.jpeg`}
-                      alt={provider.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="text-sm font-semibold text-gray-900 truncate">
-                        {provider.name}
-                      </h3>
-                      {provider.verified && (
-                        <CheckCircle size={16} className="text-blue-500 flex-shrink-0" />
-                      )}
+            {/* Rankings List */}
+            <tbody>
+              {providers.map((provider, index) => {
+                const position = (pagination.page - 1) * pagination.pageSize + index + 1
+                const providerAny = provider as any // Type assertion to access all fields
+                return (
+                <tr key={provider.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-all duration-200 ${
+                  index === 0 && pagination.page === 1 ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200' : 
+                  index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                }`}>
+                  {/* Position */}
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col items-center">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        index === 0 && pagination.page === 1 ? 'bg-yellow-400' : 
+                        position === 2 && pagination.page === 1 ? 'bg-gray-300' : 
+                        position === 3 && pagination.page === 1 ? 'bg-orange-400' : 'bg-gray-200'
+                      }`}>
+                        <span className="text-sm font-bold text-black">
+                          {position}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </div>
+                  </td>
 
-              {/* Location */}
-              <div className="col-span-2">
-                <div className="flex items-center space-x-1 text-sm text-gray-600">
-                  <Flag size={14} />
-                  <span>{getCountryFlag(provider.country)} {provider.location}</span>
-                </div>
-              </div>
+                  {/* Provider */}
+                  <td className="px-4 py-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-10 h-10 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                        <img
+                          src={providerAny.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=48`}
+                          alt={provider.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center space-x-1">
+                          <h3 className="text-xs font-semibold text-gray-900 truncate">
+                            {provider.name}
+                          </h3>
+                          {provider.verified && (
+                            <CheckCircle size={12} className="text-blue-500 flex-shrink-0" />
+                          )}
+                        </div>
+                        {providerAny.city && providerAny.state && (
+                          <p className="text-xs text-gray-500 truncate">{providerAny.city}, {providerAny.state}</p>
+                        )}
+                      </div>
+                    </div>
+                  </td>
 
-              {/* Rating */}
-              <div className="col-span-2">
-                <div className="flex items-center space-x-1">
-                  {renderStars(provider.rating)}
-                  <span className="text-sm font-medium text-gray-900">{provider.rating}</span>
-                </div>
-              </div>
+                  {/* Location */}
+                  <td className="px-4 py-3">
+                    <div className="flex items-center space-x-1 text-xs text-gray-600">
+                      <Flag size={12} />
+                      <span className="truncate">{getCountryFlag(provider.country)} {provider.location}</span>
+                    </div>
+                  </td>
 
-              {/* RH-Score Placeholder */}
-              <div className="col-span-2">
-                <span className="inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
-                  Powered by RH-Score (Phase 2)
-                </span>
-              </div>
+                  {/* Rating */}
+                  <td className="px-4 py-3">
+                    <div className="flex items-center space-x-1">
+                      <Star size={12} className={provider.rating >= 4 ? 'text-yellow-400 fill-current' : 'text-gray-300'} />
+                      <span className="text-xs font-medium text-gray-900">{provider.rating?.toFixed(1) || '0.0'}</span>
+                    </div>
+                  </td>
 
-              {/* Actions */}
-              <div className="col-span-2">
-                <div className="flex space-x-2">
-                  <a 
-                    href={`/providers/${provider.id}`}
-                    className="bg-yellow-400 hover:bg-yellow-500 text-black text-xs px-3 py-1 rounded font-medium transition-colors duration-200 flex items-center"
-                  >
-                    <Eye size={12} className="mr-1" />
-                    View
-                  </a>
-                  <a 
-                    href={`/providers/${provider.id}#contact`}
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs px-3 py-1 rounded font-medium transition-colors duration-200 flex items-center"
-                  >
-                    <MessageCircle size={12} className="mr-1" />
-                    Contact
-                  </a>
-                </div>
-              </div>
-            </div>
-            )
-          })}
+                  {/* Phone */}
+                  <td className="px-4 py-3">
+                    {providerAny.phone ? (
+                      <div className="flex items-center space-x-1 text-xs text-gray-600">
+                        <Phone size={12} />
+                        <a href={`tel:${providerAny.phone}`} className="truncate hover:text-blue-600">
+                          {providerAny.phone}
+                        </a>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </td>
+
+                  {/* Email */}
+                  <td className="px-4 py-3">
+                    {providerAny.email ? (
+                      <div className="flex items-center space-x-1 text-xs text-gray-600">
+                        <Mail size={12} />
+                        <a href={`mailto:${providerAny.email}`} className="truncate hover:text-blue-600">
+                          {providerAny.email}
+                        </a>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </td>
+
+                  {/* Website */}
+                  <td className="px-4 py-3">
+                    {providerAny.website ? (
+                      <a 
+                        href={providerAny.website} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-1 text-xs text-blue-600 hover:text-blue-800"
+                      >
+                        <Globe size={12} />
+                        <span className="truncate">Visit</span>
+                      </a>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </td>
+
+                  {/* Instagram */}
+                  <td className="px-4 py-3">
+                    {providerAny.instagram ? (
+                      <a 
+                        href={`https://instagram.com/${providerAny.instagram.replace('@', '')}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-1 text-xs text-pink-600 hover:text-pink-800"
+                      >
+                        <Instagram size={12} />
+                        <span className="truncate">@{providerAny.instagram.replace('@', '').substring(0, 10)}</span>
+                      </a>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </td>
+
+                  {/* Price Range */}
+                  <td className="px-4 py-3">
+                    {providerAny.price_range ? (
+                      <div className="flex items-center space-x-1 text-xs text-gray-600">
+                        <DollarSign size={12} />
+                        <span>{providerAny.price_range}</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </td>
+
+                  {/* Years Experience */}
+                  <td className="px-4 py-3">
+                    {providerAny.years_experience ? (
+                      <div className="flex items-center space-x-1 text-xs text-gray-600">
+                        <Calendar size={12} />
+                        <span>{providerAny.years_experience} yrs</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </td>
+
+                  {/* Views */}
+                  <td className="px-4 py-3">
+                    <div className="flex items-center space-x-1 text-xs text-gray-600">
+                      <Eye size={12} />
+                      <span>{providerAny.view_count || 0}</span>
+                    </div>
+                  </td>
+
+                  {/* Contacts */}
+                  <td className="px-4 py-3">
+                    <div className="flex items-center space-x-1 text-xs text-gray-600">
+                      <MessageCircle size={12} />
+                      <span>{providerAny.contact_count || 0}</span>
+                    </div>
+                  </td>
+
+                  {/* Skills */}
+                  <td className="px-4 py-3">
+                    {providerAny.punctuality || providerAny.professionalism || providerAny.reliability ? (
+                      <div className="flex flex-col space-y-0.5 text-xs text-gray-600">
+                        {providerAny.punctuality && (
+                          <div className="flex items-center space-x-1">
+                            <span className="w-16 truncate">Punct:</span>
+                            <div className="flex space-x-0.5">
+                              {Array.from({ length: 5 }, (_, i) => (
+                                <Star key={i} size={8} className={i < providerAny.punctuality ? 'text-yellow-400 fill-current' : 'text-gray-300'} />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {providerAny.professionalism && (
+                          <div className="flex items-center space-x-1">
+                            <span className="w-16 truncate">Prof:</span>
+                            <div className="flex space-x-0.5">
+                              {Array.from({ length: 5 }, (_, i) => (
+                                <Star key={i} size={8} className={i < providerAny.professionalism ? 'text-yellow-400 fill-current' : 'text-gray-300'} />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </td>
+
+                  {/* Status */}
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      providerAny.availability_status === 'available' 
+                        ? 'bg-green-100 text-green-800' 
+                        : providerAny.availability_status === 'busy'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {providerAny.availability_status || 'available'}
+                    </span>
+                  </td>
+
+                  {/* Actions */}
+                  <td className="px-4 py-3">
+                    <div className="flex space-x-1">
+                      <Link 
+                        href={`/providers/${provider.id}`}
+                        className="bg-yellow-400 hover:bg-yellow-500 text-black text-xs px-2 py-1 rounded font-medium transition-colors duration-200 flex items-center"
+                      >
+                        <Eye size={10} className="mr-1" />
+                        View
+                      </Link>
+                      <Link 
+                        href={`/providers/${provider.id}#contact`}
+                        className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs px-2 py-1 rounded font-medium transition-colors duration-200 flex items-center"
+                      >
+                        <MessageCircle size={10} className="mr-1" />
+                        Contact
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
 
