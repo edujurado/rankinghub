@@ -22,7 +22,8 @@ import {
   X,
   AlertCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  RefreshCw
 } from 'lucide-react'
 import { 
   getDashboardStats, 
@@ -60,6 +61,8 @@ export default function AdminDashboard() {
   const [adminProfile, setAdminProfile] = useState<{ id: string; email: string; name?: string; phone?: string } | null>(null)
   const [showProfileDropdown, setShowProfileDropdown] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize] = useState(20)
@@ -243,6 +246,54 @@ export default function AdminDashboard() {
     reader.readAsText(csvFile)
   }
 
+  const handleExportProviders = async () => {
+    try {
+      setIsExporting(true)
+      const params = new URLSearchParams()
+      
+      if (searchQuery) {
+        params.append('search', searchQuery)
+      }
+
+      const response = await fetch(`/api/admin/providers/export?${params.toString()}`)
+      
+      if (!response.ok) {
+        throw new Error('Export failed')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      
+      // Get filename from Content-Disposition header or use default
+      const contentDisposition = response.headers.get('Content-Disposition')
+      let filename = 'providers_export.csv'
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/)
+        if (filenameMatch) {
+          filename = filenameMatch[1]
+        }
+      }
+      
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      
+      const toastMessage = searchQuery 
+        ? `Successfully exported filtered providers` 
+        : `Successfully exported ${pagination.total || 'all'} providers`
+      showToast(toastMessage, 'success')
+    } catch (error) {
+      console.error('Error exporting providers:', error)
+      showToast('Failed to export providers', 'error')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   const handleContactStatusUpdate = async (id: string, status: string) => {
     const result = await updateContactStatus(id, status)
     if (result.success) {
@@ -268,6 +319,43 @@ export default function AdminDashboard() {
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleForceSync = async () => {
+    try {
+      setIsSyncing(true)
+      const response = await fetch('/api/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mode: 'full',
+          location: 'New York, NY',
+          limit: 50
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        const message = `Sync completed successfully! Duration: ${(result.duration_ms / 1000).toFixed(1)}s${
+          result.ingestion ? ` | Yelp: ${result.ingestion.yelp_total}, Google: ${result.ingestion.google_total}` : ''
+        }${
+          result.merge ? ` | Created: ${result.merge.providers_created}, Updated: ${result.merge.providers_updated}` : ''
+        }`
+        showToast(message, 'success')
+        // Reload dashboard data after sync
+        await loadDashboardData()
+      } else {
+        showToast(result.error || 'Sync failed', 'error')
+      }
+    } catch (error) {
+      console.error('Error during force sync:', error)
+      showToast('Failed to sync data. Please try again.', 'error')
+    } finally {
+      setIsSyncing(false)
+    }
   }
 
   const filteredContacts = contacts.filter(contact =>
@@ -429,6 +517,33 @@ export default function AdminDashboard() {
         {/* Tab Content */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
+            {/* Force Sync Button */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Data Synchronization</h3>
+                  <p className="text-sm text-gray-500 mt-1">Manually trigger a full data sync from external sources</p>
+                </div>
+                <button
+                  onClick={handleForceSync}
+                  disabled={isSyncing}
+                  className="flex items-center space-x-2 px-6 py-3 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isSyncing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <span>Syncing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw size={20} />
+                      <span>Force Sync</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white rounded-lg shadow p-6">
@@ -558,19 +673,36 @@ export default function AdminDashboard() {
             {/* Header with Actions */}
           <div className="bg-white rounded-lg shadow">
             <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium text-gray-900">Manage Providers</h3>
                 <div className="flex items-center space-x-4">
                     <button
                       onClick={openAddProvider}
-                      className="flex items-center space-x-2 px-4 py-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500"
+                      className="flex items-center space-x-2 px-4 py-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 transition-colors"
                     >
                       <Plus size={20} />
                       <span>Add Provider</span>
                     </button>
                     <button
+                      onClick={handleExportProviders}
+                      disabled={isExporting}
+                      className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isExporting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
+                          <span>Exporting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Download size={20} />
+                          <span>Export CSV</span>
+                        </>
+                      )}
+                    </button>
+                    <button
                       onClick={() => setShowCSVImport(true)}
-                      className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                      className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       <Upload size={20} />
                       <span>Import CSV</span>
