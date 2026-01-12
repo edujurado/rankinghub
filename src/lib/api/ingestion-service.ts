@@ -179,6 +179,8 @@ export class IngestionService {
         }
 
         const data = await response.json()
+        console.log("yelp data =>", data);
+        
         const businesses: YelpBusiness[] = data.businesses || []
         
         if (businesses.length === 0) {
@@ -343,6 +345,8 @@ export class IngestionService {
         }
 
         const searchData = await searchResponse.json()
+        console.log("google data =>", searchData);
+        
 
         if (searchData.status !== 'OK' && searchData.status !== 'ZERO_RESULTS') {
           // If pagetoken error, try to continue with first page again

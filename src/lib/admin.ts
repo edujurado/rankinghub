@@ -286,6 +286,7 @@ export async function createProvider(providerData: {
   position: number
   rating: number
   verified: boolean
+  is_direct_provider?: boolean
   country: string
   location: string
   image_url: string
@@ -327,6 +328,7 @@ export async function createProvider(providerData: {
         position: providerData.position,
         rating: providerData.rating,
         verified: providerData.verified,
+        is_direct_provider: providerData.is_direct_provider !== undefined ? providerData.is_direct_provider : true,
         country: providerData.country,
         location: providerData.location,
         image_url: providerData.image_url,
@@ -374,6 +376,7 @@ export async function updateProvider(id: string, providerData: Partial<{
   position: number
   rating: number
   verified: boolean
+  is_direct_provider?: boolean
   country: string
   location: string
   image_url: string
@@ -403,23 +406,30 @@ export async function updateProvider(id: string, providerData: Partial<{
     }
 
     // Update provider
+    const updateData: any = {
+      name: providerData.name,
+      category_id: categoryId,
+      position: providerData.position,
+      rating: providerData.rating,
+      verified: providerData.verified,
+      country: providerData.country,
+      location: providerData.location,
+      image_url: providerData.image_url,
+      bio: providerData.bio,
+      email: providerData.email,
+      phone: providerData.phone,
+      website: providerData.website,
+      instagram: providerData.instagram
+    }
+    
+    // Only include is_direct_provider if it's provided
+    if (providerData.is_direct_provider !== undefined) {
+      updateData.is_direct_provider = providerData.is_direct_provider
+    }
+    
     const { error: providerError } = await supabase
       .from('providers')
-      .update({
-        name: providerData.name,
-        category_id: categoryId,
-        position: providerData.position,
-        rating: providerData.rating,
-        verified: providerData.verified,
-        country: providerData.country,
-        location: providerData.location,
-        image_url: providerData.image_url,
-        bio: providerData.bio,
-        email: providerData.email,
-        phone: providerData.phone,
-        website: providerData.website,
-        instagram: providerData.instagram
-      })
+      .update(updateData)
       .eq('id', id)
 
     if (providerError) {

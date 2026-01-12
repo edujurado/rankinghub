@@ -405,7 +405,8 @@ export class MergeService {
         website: fields.website,
         price_range: fields.price_range,
         social_proof_count: fields.social_proof_count,
-        is_active: true
+        is_active: true,
+        is_direct_provider: true // Default new providers to direct providers (admins can mark directories as false)
       })
       .select('id')
       .single()

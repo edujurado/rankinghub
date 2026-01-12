@@ -60,6 +60,7 @@ export interface Provider {
   contact_count: number
   is_active: boolean
   is_claimed: boolean
+  is_direct_provider: boolean
   claimed_at?: string
   last_updated_at: string
   created_at: string
@@ -209,6 +210,8 @@ export async function getProvidersByCategory(
       )
     `)
     .eq('categories.slug', categorySlug)
+    .eq('is_direct_provider', true) // Only show direct service providers in public rankings
+    .eq('is_active', true)
 
   if (searchQuery) {
     query = query.or(`name.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%`)
@@ -292,6 +295,7 @@ export async function getProvidersByCategoryPaginated(
     .from('providers')
     .select('*', { count: 'exact', head: true })
     .eq('category_id', categoryData.id)
+    .eq('is_direct_provider', true) // Only count direct service providers
     .eq('is_active', true)
 
   if (searchQuery) {
@@ -333,6 +337,7 @@ export async function getProvidersByCategoryPaginated(
       )
     `)
     .eq('category_id', categoryData.id)
+    .eq('is_direct_provider', true) // Only show direct service providers in public rankings
     .eq('is_active', true)
 
   if (searchQuery) {
@@ -411,6 +416,7 @@ export async function getProviderCountByCategory(categorySlug: string): Promise<
     .from('providers')
     .select('*', { count: 'exact', head: true })
     .eq('category_id', categoryData.id)
+    .eq('is_direct_provider', true) // Only count direct service providers
     .eq('is_active', true)
 
   if (error) {
@@ -444,6 +450,7 @@ export async function getProviderCountsByCategory(): Promise<Record<string, numb
       .from('providers')
       .select('*', { count: 'exact', head: true })
       .eq('category_id', category.id)
+      .eq('is_direct_provider', true) // Only count direct service providers
       .eq('is_active', true)
 
     if (!error) {
@@ -509,6 +516,8 @@ export async function getFeaturedProviders(limit: number = 6): Promise<Provider[
       )
     `)
     .eq('featured', true)
+    .eq('is_direct_provider', true) // Only show direct service providers
+    .eq('is_active', true)
     .order('rating', { ascending: false })
     .limit(limit)
 
@@ -550,6 +559,8 @@ export async function searchProviders(
         client_satisfaction
       )
     `)
+    .eq('is_direct_provider', true) // Only search direct service providers
+    .eq('is_active', true)
     .textSearch('name', query, {
       type: 'websearch',
       config: 'english'

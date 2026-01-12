@@ -11,7 +11,7 @@ export async function getProvidersByCategory(category: string, searchQuery?: str
     .from('categories')
     .select('id')
     .eq('slug', category)
-    .single()
+    .single() 
 
   if (!categoryData) {
     console.error('Category not found:', category)
@@ -34,6 +34,7 @@ export async function getProvidersByCategory(category: string, searchQuery?: str
       )
     `)
     .eq('category_id', categoryData.id)
+    .eq('is_direct_provider', true) // Only show direct service providers
     .eq('is_active', true)
     .order('position', { ascending: true })
 
@@ -102,6 +103,7 @@ export async function getTopProviders(category?: string, limit: number = 10): Pr
         slug
       )
     `)
+    .eq('is_direct_provider', true) // Only show direct service providers
     .eq('is_active', true)
     .order('rating', { ascending: false })
     .order('social_proof_count', { ascending: false })

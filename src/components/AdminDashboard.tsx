@@ -80,6 +80,7 @@ export default function AdminDashboard() {
     position: 1,
     rating: 0,
     verified: false,
+    is_direct_provider: true,
     country: '',
     location: '',
     image_url: '',
@@ -371,12 +372,15 @@ export default function AdminDashboard() {
 
   const openEditProvider = (p: Provider) => {
     setEditingProvider(p)
+    // Access is_direct_provider from provider object (admin API returns all fields)
+    const providerAny = p as any
     setProviderForm({
       name: p.name,
       category: p.category,
       position: p.position,
       rating: p.rating,
       verified: p.verified,
+      is_direct_provider: providerAny.is_direct_provider !== undefined ? providerAny.is_direct_provider : true,
       country: p.country,
       location: p.location,
       image_url: p.image,
@@ -397,7 +401,10 @@ export default function AdminDashboard() {
   }
 
   const submitAddProvider = async () => {
-    const res = await createProvider(providerForm)
+    const res = await createProvider({
+      ...providerForm,
+      is_direct_provider: providerForm.is_direct_provider !== undefined ? providerForm.is_direct_provider : true
+    })
     if (res.success) {
       showToast('Provider added', 'success')
       setShowAddProvider(false)
@@ -411,7 +418,10 @@ export default function AdminDashboard() {
 
   const submitEditProvider = async () => {
     if (!editingProvider) return
-    const res = await updateProvider(editingProvider.id, providerForm)
+    const res = await updateProvider(editingProvider.id, {
+      ...providerForm,
+      is_direct_provider: providerForm.is_direct_provider !== undefined ? providerForm.is_direct_provider : true
+    })
     if (res.success) {
       showToast('Provider updated', 'success')
       setShowEditProvider(false)
@@ -1360,6 +1370,20 @@ export default function AdminDashboard() {
                     onChange={(e) => setProviderForm({ ...providerForm, rating: Number(e.target.value) })}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={providerForm.is_direct_provider}
+                      onChange={(e) => setProviderForm({ ...providerForm, is_direct_provider: e.target.checked })}
+                      className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      Direct Service Provider
+                      <span className="text-xs text-gray-500 ml-2">(Uncheck for directories/platforms)</span>
+                    </span>
+                  </label>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
