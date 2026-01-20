@@ -35,6 +35,8 @@ import {
   getAllContacts,
   updateContactStatus,
   deleteContact,
+  identifyPotentialDirectories,
+  bulkUpdateDirectProviderFlag,
   DashboardStats,
   ContactSubmission
 } from '@/lib/admin'
@@ -73,6 +75,9 @@ export default function AdminDashboard() {
     hasPreviousPage: false
   })
   const [providersLoading, setProvidersLoading] = useState(false)
+  const [potentialDirectories, setPotentialDirectories] = useState<Provider[]>([])
+  const [reviewingDirectories, setReviewingDirectories] = useState(false)
+  const [selectedDirectoryIds, setSelectedDirectoryIds] = useState<Set<string>>(new Set())
 
   const emptyProviderForm = {
     name: '',
@@ -680,6 +685,116 @@ export default function AdminDashboard() {
 
         {activeTab === 'providers' && (
           <div className="space-y-6">
+            {/* Directory Review Section */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Review Directories/Platforms</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Identify and mark directories/platforms that aggregate multiple providers. These will be excluded from public rankings.
+                  </p>
+                </div>
+                <button
+                  onClick={async () => {
+                    setReviewingDirectories(true)
+                    try {
+                      const directories = await identifyPotentialDirectories()
+                      setPotentialDirectories(directories)
+                      if (directories.length === 0) {
+                        showToast('No potential directories found. All providers appear to be direct service providers.', 'success')
+                      }
+                    } catch (error) {
+                      showToast('Failed to identify potential directories', 'error')
+                    } finally {
+                      setReviewingDirectories(false)
+                    }
+                  }}
+                  disabled={reviewingDirectories}
+                  className="px-4 py-2 bg-yellow-400 text-black rounded-lg hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {reviewingDirectories ? 'Identifying...' : 'Identify Potential Directories'}
+                </button>
+              </div>
+
+              {potentialDirectories.length > 0 && (
+                <div className="mt-4 space-y-4">
+                  <div className="bg-white rounded-lg border border-yellow-300 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-medium text-gray-900">
+                        Found {potentialDirectories.length} potential {potentialDirectories.length === 1 ? 'directory' : 'directories'}
+                      </p>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => setSelectedDirectoryIds(new Set(potentialDirectories.map(p => p.id)))}
+                          className="text-xs px-2 py-1 text-blue-600 hover:text-blue-800"
+                        >
+                          Select All
+                        </button>
+                        <button
+                          onClick={() => setSelectedDirectoryIds(new Set())}
+                          className="text-xs px-2 py-1 text-gray-600 hover:text-gray-800"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                    <div className="max-h-60 overflow-y-auto space-y-2">
+                      {potentialDirectories.map((provider) => (
+                        <label key={provider.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedDirectoryIds.has(provider.id)}
+                            onChange={(e) => {
+                              const newSet = new Set(selectedDirectoryIds)
+                              if (e.target.checked) {
+                                newSet.add(provider.id)
+                              } else {
+                                newSet.delete(provider.id)
+                              }
+                              setSelectedDirectoryIds(newSet)
+                            }}
+                            className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                          />
+                          <div className="flex-1">
+                            <span className="text-sm font-medium text-gray-900">{provider.name}</span>
+                            <span className="text-xs text-gray-500 ml-2">({provider.location})</span>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                    {selectedDirectoryIds.size > 0 && (
+                      <div className="mt-4 flex justify-end space-x-2">
+                        <button
+                          onClick={async () => {
+                            try {
+                              const result = await bulkUpdateDirectProviderFlag(
+                                Array.from(selectedDirectoryIds),
+                                false
+                              )
+                              if (result.success) {
+                                showToast(`Marked ${result.updated} ${result.updated === 1 ? 'provider' : 'providers'} as directories`, 'success')
+                                setPotentialDirectories([])
+                                setSelectedDirectoryIds(new Set())
+                                loadProviders()
+                                loadDashboardData()
+                              } else {
+                                showToast(result.error || 'Failed to update providers', 'error')
+                              }
+                            } catch (error) {
+                              showToast('Failed to update providers', 'error')
+                            }
+                          }}
+                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        >
+                          Mark {selectedDirectoryIds.size} as {selectedDirectoryIds.size === 1 ? 'Directory' : 'Directories'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Header with Actions */}
           <div className="bg-white rounded-lg shadow">
             <div className="px-6 py-4 border-b border-gray-200">

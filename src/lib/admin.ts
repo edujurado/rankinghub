@@ -1,6 +1,122 @@
 import { supabase } from './supabase'
 import { Provider } from '@/types'
 
+/**
+ * Identify potential directories/platforms based on common patterns
+ * Returns providers that might be directories (high review counts, name patterns, etc.)
+ */
+export async function identifyPotentialDirectories(): Promise<Provider[]> {
+  const { data: providers, error } = await supabase
+    .from('providers')
+    .select(`
+      *,
+      categories:categories ( name, slug ),
+      skills (
+        punctuality,
+        professionalism,
+        reliability,
+        price,
+        client_satisfaction
+      )
+    `)
+    .eq('is_direct_provider', true) // Only check providers currently marked as direct
+    .order('social_proof_count', { ascending: false })
+    .limit(100)
+
+  if (error) {
+    console.error('Error identifying potential directories:', error)
+    return []
+  }
+
+  // Filter providers that match directory patterns
+  const directoryPatterns = [
+    /directory/i,
+    /marketplace/i,
+    /platform/i,
+    /aggregator/i,
+    /listing/i,
+    /find.*dj/i,
+    /book.*dj/i,
+    /dj.*hub/i,
+    /dj.*network/i,
+    /dj.*directory/i,
+    /hire.*dj/i,
+    /dj.*booking/i,
+    /event.*platform/i,
+    /venue.*directory/i
+  ]
+
+  const potentialDirectories = (providers || []).filter((provider: any) => {
+    const name = provider.name?.toLowerCase() || ''
+    const bio = provider.bio?.toLowerCase() || ''
+    const website = provider.website?.toLowerCase() || ''
+
+    // Check name patterns
+    const matchesNamePattern = directoryPatterns.some(pattern => pattern.test(name))
+    
+    // Check for high review counts (directories often have aggregated reviews)
+    const hasHighReviewCount = (provider.social_proof_count || 0) > 100
+    
+    // Check bio/website for directory indicators
+    const matchesBioPattern = directoryPatterns.some(pattern => 
+      pattern.test(bio) || pattern.test(website)
+    )
+
+    return matchesNamePattern || (hasHighReviewCount && matchesBioPattern)
+  })
+
+  return potentialDirectories.map((p: any) => ({
+    id: p.id,
+    name: p.name,
+    category: p.categories?.slug || 'djs',
+    position: p.position,
+    rating: p.rating,
+    verified: p.verified,
+    country: p.country,
+    location: p.location,
+    image: p.image_url,
+    skills: {
+      punctuality: p.skills?.[0]?.punctuality || 0,
+      professionalism: p.skills?.[0]?.professionalism || 0,
+      reliability: p.skills?.[0]?.reliability || 0,
+      price: p.skills?.[0]?.price || 0,
+      clientSatisfaction: p.skills?.[0]?.client_satisfaction || 0
+    },
+    bio: p.bio,
+    portfolio: p.portfolio_images || [],
+    contact: {
+      email: p.email,
+      phone: p.phone,
+      website: p.website,
+      instagram: p.instagram
+    }
+  }))
+}
+
+/**
+ * Bulk update is_direct_provider flag for multiple providers
+ */
+export async function bulkUpdateDirectProviderFlag(
+  providerIds: string[],
+  isDirectProvider: boolean
+): Promise<{ success: boolean; updated: number; error?: string }> {
+  if (!Array.isArray(providerIds) || providerIds.length === 0) {
+    return { success: false, updated: 0, error: 'providerIds must be a non-empty array' }
+  }
+
+  const { data, error } = await supabase
+    .from('providers')
+    .update({ is_direct_provider: isDirectProvider })
+    .in('id', providerIds)
+    .select('id')
+
+  if (error) {
+    return { success: false, updated: 0, error: error.message }
+  }
+
+  return { success: true, updated: data?.length || 0 }
+}
+
 // Admin Dashboard Stats
 export interface DashboardStats {
   totalProviders: number
