@@ -249,6 +249,7 @@ export async function getAllProviders(): Promise<Provider[]> {
     position: provider.position,
     rating: provider.rating,
     verified: provider.verified,
+    is_direct_provider: provider.is_direct_provider !== undefined ? provider.is_direct_provider : true,
     country: provider.country,
     location: provider.location,
     image: provider.image_url,
@@ -266,7 +267,11 @@ export async function getAllProviders(): Promise<Provider[]> {
       phone: provider.phone,
       website: provider.website,
       instagram: provider.instagram
-    }
+    },
+    view_count: provider.view_count || 0,
+    contact_count: provider.contact_count || 0,
+    created_at: provider.created_at,
+    is_active: provider.is_active !== undefined ? provider.is_active : true,
   })) || []
 }
 
@@ -357,6 +362,7 @@ export async function getProvidersPaginated(
     position: provider.position,
     rating: provider.rating,
     verified: provider.verified,
+    is_direct_provider: provider.is_direct_provider !== undefined ? provider.is_direct_provider : true,
     country: provider.country,
     location: provider.location,
     city: provider.city,
@@ -382,8 +388,8 @@ export async function getProvidersPaginated(
     contact_count: provider.contact_count || 0,
     created_at: provider.created_at,
     updated_at: provider.updated_at,
-    is_active: provider.is_active,
-    is_claimed: provider.is_claimed
+    is_active: provider.is_active !== undefined ? provider.is_active : true,
+    is_claimed: provider.is_claimed || false
   })) || []
 
   return {
@@ -523,19 +529,19 @@ export async function updateProvider(id: string, providerData: Partial<{
 
     // Update provider
     const updateData: any = {
-      name: providerData.name,
-      category_id: categoryId,
-      position: providerData.position,
-      rating: providerData.rating,
-      verified: providerData.verified,
-      country: providerData.country,
-      location: providerData.location,
-      image_url: providerData.image_url,
-      bio: providerData.bio,
-      email: providerData.email,
-      phone: providerData.phone,
-      website: providerData.website,
-      instagram: providerData.instagram
+        name: providerData.name,
+        category_id: categoryId,
+        position: providerData.position,
+        rating: providerData.rating,
+        verified: providerData.verified,
+        country: providerData.country,
+        location: providerData.location,
+        image_url: providerData.image_url,
+        bio: providerData.bio,
+        email: providerData.email,
+        phone: providerData.phone,
+        website: providerData.website,
+        instagram: providerData.instagram
     }
     
     // Only include is_direct_provider if it's provided

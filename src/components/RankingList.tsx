@@ -168,7 +168,7 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
         {/* Scrollable Container */}
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1400px]">
-            {/* Table Header */}
+        {/* Table Header */}
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-16">#</th>
@@ -189,49 +189,49 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
               </tr>
             </thead>
 
-            {/* Rankings List */}
+        {/* Rankings List */}
             <tbody>
-              {providers.map((provider, index) => {
-                const position = (pagination.page - 1) * pagination.pageSize + index + 1
+          {providers.map((provider, index) => {
+            const position = (pagination.page - 1) * pagination.pageSize + index + 1
                 const providerAny = provider as any // Type assertion to access all fields
-                return (
+            return (
                 <tr key={provider.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-all duration-200 ${
-                  index === 0 && pagination.page === 1 ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200' : 
-                  index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                }`}>
-                  {/* Position */}
+              index === 0 && pagination.page === 1 ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200' : 
+              index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+            }`}>
+              {/* Position */}
                   <td className="px-4 py-3">
-                    <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        index === 0 && pagination.page === 1 ? 'bg-yellow-400' : 
-                        position === 2 && pagination.page === 1 ? 'bg-gray-300' : 
-                        position === 3 && pagination.page === 1 ? 'bg-orange-400' : 'bg-gray-200'
-                      }`}>
+                    index === 0 && pagination.page === 1 ? 'bg-yellow-400' : 
+                    position === 2 && pagination.page === 1 ? 'bg-gray-300' : 
+                    position === 3 && pagination.page === 1 ? 'bg-orange-400' : 'bg-gray-200'
+                  }`}>
                         <span className="text-sm font-bold text-black">
-                          {position}
-                        </span>
-                      </div>
-                    </div>
+                      {position}
+                    </span>
+                  </div>
+                </div>
                   </td>
 
-                  {/* Provider */}
+              {/* Provider */}
                   <td className="px-4 py-3">
                     <div className="flex items-center space-x-2">
                       <div className="w-10 h-10 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                        <img
+                    <img
                           src={providerAny.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider.name)}&background=random&color=fff&size=48`}
-                          alt={provider.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="min-w-0">
+                      alt={provider.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0">
                         <div className="flex items-center space-x-1">
                           <h3 className="text-xs font-semibold text-gray-900 truncate">
-                            {provider.name}
-                          </h3>
-                          {provider.verified && (
+                        {provider.name}
+                      </h3>
+                      {provider.verified && (
                             <CheckCircle size={12} className="text-blue-500 flex-shrink-0" />
-                          )}
+                      )}
                         </div>
                         {providerAny.city && providerAny.state && (
                           <p className="text-xs text-gray-500 truncate">{providerAny.city}, {providerAny.state}</p>
@@ -336,7 +336,7 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
                       <div className="flex items-center space-x-1 text-xs text-gray-600">
                         <Calendar size={12} />
                         <span>{providerAny.years_experience} yrs</span>
-                      </div>
+                  </div>
                     ) : (
                       <span className="text-xs text-gray-400">-</span>
                     )}
@@ -347,7 +347,7 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
                     <div className="flex items-center space-x-1 text-xs text-gray-600">
                       <Eye size={12} />
                       <span>{providerAny.view_count || 0}</span>
-                    </div>
+                </div>
                   </td>
 
                   {/* Contacts */}
@@ -355,7 +355,7 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
                     <div className="flex items-center space-x-1 text-xs text-gray-600">
                       <MessageCircle size={12} />
                       <span>{providerAny.contact_count || 0}</span>
-                    </div>
+              </div>
                   </td>
 
                   {/* Skills */}
@@ -369,18 +369,18 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
                               {Array.from({ length: 5 }, (_, i) => (
                                 <Star key={i} size={8} className={i < providerAny.punctuality ? 'text-yellow-400 fill-current' : 'text-gray-300'} />
                               ))}
-                            </div>
-                          </div>
+                </div>
+              </div>
                         )}
                         {providerAny.professionalism && (
-                          <div className="flex items-center space-x-1">
+                <div className="flex items-center space-x-1">
                             <span className="w-16 truncate">Prof:</span>
                             <div className="flex space-x-0.5">
                               {Array.from({ length: 5 }, (_, i) => (
                                 <Star key={i} size={8} className={i < providerAny.professionalism ? 'text-yellow-400 fill-current' : 'text-gray-300'} />
                               ))}
-                            </div>
-                          </div>
+                </div>
+              </div>
                         )}
                       </div>
                     ) : (
@@ -398,31 +398,31 @@ export default function RankingList({ category, searchQuery }: RankingListProps)
                         : 'bg-gray-100 text-gray-800'
                     }`}>
                       {providerAny.availability_status || 'available'}
-                    </span>
+                </span>
                   </td>
 
-                  {/* Actions */}
+              {/* Actions */}
                   <td className="px-4 py-3">
                     <div className="flex space-x-1">
                       <Link 
-                        href={`/providers/${provider.id}`}
+                    href={`/providers/${provider.id}`}
                         className="bg-yellow-400 hover:bg-yellow-500 text-black text-xs px-2 py-1 rounded font-medium transition-colors duration-200 flex items-center"
-                      >
+                  >
                         <Eye size={10} className="mr-1" />
-                        View
+                    View
                       </Link>
                       <Link 
-                        href={`/providers/${provider.id}#contact`}
+                    href={`/providers/${provider.id}#contact`}
                         className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs px-2 py-1 rounded font-medium transition-colors duration-200 flex items-center"
-                      >
+                  >
                         <MessageCircle size={10} className="mr-1" />
-                        Contact
+                    Contact
                       </Link>
-                    </div>
+                </div>
                   </td>
                 </tr>
-                )
-              })}
+            )
+          })}
             </tbody>
           </table>
         </div>

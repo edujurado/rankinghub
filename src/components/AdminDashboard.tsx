@@ -225,6 +225,55 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleToggleDirectProvider = async (provider: any) => {
+    const currentIsDirect = provider.is_direct_provider !== false && provider.is_direct_provider !== null
+    const newIsDirect = !currentIsDirect
+    
+    // Optimistic update - update local state immediately for instant UI feedback
+    setProviders(prevProviders => 
+      prevProviders.map(p => 
+        p.id === provider.id 
+          ? { ...p, is_direct_provider: newIsDirect }
+          : p
+      )
+    )
+    
+    try {
+      const result = await bulkUpdateDirectProviderFlag([provider.id], newIsDirect)
+      if (result.success) {
+        showToast(
+          newIsDirect
+            ? 'Marked provider as direct service provider'
+            : 'Marked provider as directory/platform (excluded from rankings)',
+          'success'
+        )
+        // No need to reload - optimistic update already handled UI
+        // Optionally sync in background without affecting UI
+      } else {
+        // Revert optimistic update on error
+        setProviders(prevProviders => 
+          prevProviders.map(p => 
+            p.id === provider.id 
+              ? { ...p, is_direct_provider: currentIsDirect }
+              : p
+          )
+        )
+        showToast(result.error || 'Failed to update provider type', 'error')
+      }
+    } catch (error) {
+      // Revert optimistic update on error
+      setProviders(prevProviders => 
+        prevProviders.map(p => 
+          p.id === provider.id 
+            ? { ...p, is_direct_provider: currentIsDirect }
+            : p
+        )
+      )
+      console.error('Error updating provider type:', error)
+      showToast('Failed to update provider type', 'error')
+    }
+  }
+
   const handleCSVImport = async () => {
     if (!csvFile) return
 
@@ -867,13 +916,14 @@ export default function AdminDashboard() {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacts</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {providersLoading ? (
                       <tr>
-                        <td colSpan={13} className="px-6 py-8 text-center">
+                        <td colSpan={14} className="px-6 py-8 text-center">
                           <div className="flex justify-center items-center">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
                             <span className="ml-3 text-gray-600">Loading providers...</span>
@@ -882,7 +932,7 @@ export default function AdminDashboard() {
                       </tr>
                     ) : providers.length === 0 ? (
                       <tr>
-                        <td colSpan={13} className="px-6 py-8 text-center text-gray-500">
+                        <td colSpan={14} className="px-6 py-8 text-center text-gray-500">
                           No providers found
                         </td>
                       </tr>
@@ -958,6 +1008,25 @@ export default function AdminDashboard() {
                                 Inactive
                               </span>
                             )}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="flex items-center space-x-2">
+                              <span
+                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  (provider.is_direct_provider === false || provider.is_direct_provider === null)
+                                    ? 'bg-purple-100 text-purple-800'
+                                    : 'bg-green-100 text-green-800'
+                                }`}
+                              >
+                                {(provider.is_direct_provider === false || provider.is_direct_provider === null) ? 'Directory' : 'Direct'}
+                              </span>
+                              <button
+                                onClick={() => handleToggleDirectProvider(provider)}
+                                className="text-xs px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                              >
+                                {(provider.is_direct_provider === false || provider.is_direct_provider === null) ? 'Mark Direct' : 'Mark Directory'}
+                              </button>
+                            </div>
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex items-center space-x-2">
